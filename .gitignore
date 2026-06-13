@@ -23,3 +23,7 @@ dist/icon.iconset/
 
 # Claude Code 本地配置不入仓
 .claude/
+
+# 营销文案 / 私人笔记本地保留，不进仓库
+docs/VIDEO-LAUNCH-COPY.md
+docs/PRIVATE/
