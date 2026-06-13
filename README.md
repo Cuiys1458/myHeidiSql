@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/binary-Universal%20(arm64%20%2B%20x86__64)-success" alt="Universal Binary">
   <img src="https://img.shields.io/badge/dmg-13%20MB-brightgreen" alt="13 MB">
   <img src="https://img.shields.io/badge/tests-246%20passing-success" alt="246 tests passing">
-  <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="MIT">
+  <img src="https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange" alt="PolyForm Noncommercial">
 </p>
 
 ---
@@ -676,10 +676,28 @@ UI 想换协议 → 只换 driver target；测试想跑 → 只测 Core，不需
 
 ---
 
+## 许可证
+
+MacHeidi 采用 **[PolyForm Noncommercial 1.0.0](LICENSE)** 许可证 —— **免费供非商业使用**。
+
+| 用途 | 是否允许 |
+|---|---|
+| 个人使用、学习、研究、爱好项目 | ✅ |
+| 学术机构、慈善组织、政府部门、公共研究机构使用 | ✅ |
+| 修改源代码并自用 | ✅ |
+| 重新分发（带原始 license 和版权声明） | ✅ |
+| **任何商业用途** —— 包括公司内部生产使用、嵌入付费产品、做成 SaaS 收费、二次销售 | ❌ |
+
+需要商用授权？请到 [Issues](https://github.com/Cuiys1458/myHeidiSql/issues) 联系作者另谈。
+
+> 上表是通俗说明，**法律效力以 [LICENSE](LICENSE) 文件中的英文条款为准**。如果两者冲突，以 LICENSE 文件为准。
+
+---
+
 ## 致谢
 
 - **HeidiSQL** —— 灵感来源，操作模型完全对齐
-- **vapor/mysql-nio** —— Swift 原生 MySQL 驱动
+- **vapor/mysql-nio** —— Swift 原生 MySQL 驱动（Apache 2.0）
 - **Apple SwiftUI / AppKit** —— UI 框架
 
 ---

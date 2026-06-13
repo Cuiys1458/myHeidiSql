@@ -210,4 +210,4 @@ shasum -a 256 ~/Downloads/MacHeidi-0.1.0.dmg
 
 发现 bug / 想要某个功能？欢迎开 [Issue](https://github.com/Cuiys1458/myHeidiSql/issues)。
 
-**MIT License** · Built with ❤️ on macOS.
+**[PolyForm Noncommercial 1.0.0](https://github.com/Cuiys1458/myHeidiSql/blob/main/LICENSE)** · 免费供非商业使用 · Built with ❤️ on macOS.
