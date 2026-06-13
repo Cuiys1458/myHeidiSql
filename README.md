@@ -42,6 +42,37 @@ cd myHeidiSql
 
 ---
 
+## 界面预览
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/04-connected-query-tab.png" alt="主界面 — 侧栏库列表 + Query Tab"></td>
+    <td width="50%"><img src="docs/screenshots/06-data-tab.png" alt="数据浏览 Data Tab"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>主界面 · 侧栏库表树 + Query Tab</sub></td>
+    <td align="center"><sub>Data Tab · 分页 / WHERE / 列头 / 行头标记</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/05-sql-completion.png" alt="SQL 自动补全弹窗"></td>
+    <td><img src="docs/screenshots/08-table-info.png" alt="Show Table Info"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>SQL 自动补全（输入即弹）</sub></td>
+    <td align="center"><sub>表元信息 · Status / Columns / Indexes / DDL</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/09-edit-structure.png" alt="Edit Structure"></td>
+    <td><img src="docs/screenshots/10-modify-column.png" alt="Modify Column 含 SQL Preview"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>表结构编辑（DDL UI）· 列管理</sub></td>
+    <td align="center"><sub>Modify Column · 改完即时生成 SQL Preview</sub></td>
+  </tr>
+</table>
+
+---
+
 ## 目录
 
 - [一句话定位](#一句话定位)
@@ -119,6 +150,21 @@ git clone <repo> && cd my_mac_heidisql
 
 ### 1. 连接管理
 
+> 首次启动自动弹 Welcome 空态；点 **Open Session Manager** 进入会话管理，配 host / port / user / password，**Test** 验证后 **Open** 连进去。
+>
+> <table>
+>   <tr>
+>     <td><img src="docs/screenshots/01-welcome.png" alt="Welcome 空态"></td>
+>     <td><img src="docs/screenshots/02-session-manager-remote.png" alt="Session Manager 编辑会话"></td>
+>     <td><img src="docs/screenshots/03-session-manager-test-ok.png" alt="Test 成功反馈"></td>
+>   </tr>
+>   <tr>
+>     <td align="center"><sub>无会话时的空态引导</sub></td>
+>     <td align="center"><sub>Session Manager · 编辑远端会话</sub></td>
+>     <td align="center"><sub>Test 成功后底部绿色反馈</sub></td>
+>   </tr>
+> </table>
+
 **会话 CRUD**
 
 - ✅ 新建 / 编辑 / 删除 / **复制**会话
@@ -150,6 +196,10 @@ git clone <repo> && cd my_mac_heidisql
 
 ### 2. 对象树（侧栏）
 
+> <img src="docs/screenshots/07-context-menu.png" alt="侧栏 + 右键菜单" width="100%">
+>
+> 侧栏自动按 Sessions / Databases / Tables 分组；右键表得到 Open Data / Show Table Info / Copy Table Name / Copy CREATE Statement / Import CSV… / Truncate Table…
+
 - ✅ 双层结构：**Sessions → Databases → Tables / Views / Procedures / Functions / Triggers**
 - ✅ 不同对象类型按图标颜色区分
 - ✅ **跨库表名搜索** —— `Filter tables…` 输入框，模糊匹配 / 大小写不敏感
@@ -164,6 +214,8 @@ git clone <repo> && cd my_mac_heidisql
   - **会话**：Open / Edit / Duplicate / Delete
 
 ### 3. 数据浏览（Data Tab）
+
+> <img src="docs/screenshots/06-data-tab.png" alt="Data Tab 浏览数据" width="100%">
 
 **渲染与性能**
 
@@ -220,6 +272,8 @@ git clone <repo> && cd my_mac_heidisql
 
 ### 5. SQL 编辑器（Query Tab）
 
+> <img src="docs/screenshots/04-connected-query-tab.png" alt="Query Tab + 库列表" width="100%">
+
 - ✅ 多 Query Tab，互相独立；切换不丢 SQL（`AppEnvironment.queryTabSQL` 持久化）
 - ✅ **F9 / ⇧⌘R**：执行所有语句 —— 由 `SQLSplitter` 状态机按 `;` 拆分（识别字符串 / 注释 / 反引号 / 转义）
 - ✅ **⌘⏎**：执行光标所在的当前语句（同一份 splitter）
@@ -234,6 +288,10 @@ git clone <repo> && cd my_mac_heidisql
 - ✅ **Format 按钮 / ⇧⌘F**：SQL 美化（关键字大写 + 主子句换行 + AND/OR 缩进；字符串内容保留原样）
 
 ### 6. SQL 自动补全
+
+> <img src="docs/screenshots/05-sql-completion.png" alt="SQL 自动补全弹窗" width="100%">
+>
+> 输 `SELECT * fr` → 250ms 后自动弹出候选，关键字（蓝）和函数（紫）按图标分类，关键字优先于函数。
 
 - ✅ **输入即弹**（IDE 风格，250ms debounce 之后无新输入触发）
 - ✅ **⌃Space** 强制触发
@@ -252,6 +310,8 @@ git clone <repo> && cd my_mac_heidisql
 
 右键表 → **Show Table Info** 打开独立窗口：
 
+> <img src="docs/screenshots/08-table-info.png" alt="Show Table Info" width="100%">
+
 - ✅ **Status**：Engine / Rows / Avg Row Length / Data Length / Index Length / Collation / Created / Updated / Comment
 - ✅ **Columns**：完整列表（PK 🔑 / NOT NULL `*` / Type / Default / Comment）
 - ✅ **Indexes**：PRIMARY 黄锁 / UNIQUE 蓝盾 / 普通 INDEX，列出索引列与方向
@@ -262,6 +322,17 @@ git clone <repo> && cd my_mac_heidisql
 ### 8. 表结构编辑（DDL UI）
 
 通过 Show Table Info → **Edit Structure** 进入 sheet：
+
+> <table>
+>   <tr>
+>     <td><img src="docs/screenshots/09-edit-structure.png" alt="Edit Structure 列表"></td>
+>     <td><img src="docs/screenshots/10-modify-column.png" alt="Modify Column"></td>
+>   </tr>
+>   <tr>
+>     <td align="center"><sub>列与索引一览，每行都有 Modify / Rename / Drop</sub></td>
+>     <td align="center"><sub>改完字段后实时生成 SQL Preview，确认无误才 Apply</sub></td>
+>   </tr>
+> </table>
 
 **列管理（A 子切片）**
 - ✅ **Add Column**：Name / Type / Nullable / Default / AUTO_INCREMENT / PK / Position（FIRST / AFTER `<col>`） / Comment
