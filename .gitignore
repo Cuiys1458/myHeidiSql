@@ -1,0 +1,25 @@
+.build/
+.swiftpm/
+*.xcodeproj
+*.o
+*.d
+*.swiftdeps
+*.swiftdeps~
+DerivedData/
+.DS_Store
+MacHeidi.app/
+
+# 防止根目录散落的编译中间产物再次进入
+/*.o
+/*.d
+/*.swiftdeps
+/*.swiftdeps~
+
+# 打包产物：.app 和 .dmg 通过 GitHub Release 分发，不进仓库
+dist/MacHeidi.app/
+dist/MacHeidi-*.dmg
+dist/dmg-staging/
+dist/icon.iconset/
+
+# Claude Code 本地配置不入仓
+.claude/
