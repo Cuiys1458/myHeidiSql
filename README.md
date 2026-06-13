@@ -29,7 +29,7 @@
 
 ## 下载
 
-去 **[Releases 页面](https://github.com/Cuiys1458/myHeidiSql/releases)** 下 `MacHeidi-0.1.0.dmg`（13 MB）→ 拖进 Applications → **右键 → 打开**（首次启动绕过 Gatekeeper，因为没花 99 美金买 Apple Developer ID）。
+去 **[Releases 页面](https://github.com/Cuiys1458/myHeidiSql/releases)** 下 `MacHeidi-0.1.0.dmg`（13 MB）→ 拖进 Applications → **右键 → 打开**（首次启动绕过 Gatekeeper，因为是 ad-hoc 签名）。
 
 或者自己编：
 
@@ -460,7 +460,7 @@ git clone <repo> && cd my_mac_heidisql
 | 项 | 原因 |
 |---|---|
 | ❌ Mac App Store 上架 | 用户明确不需要 |
-| ❌ Apple Developer ID 签名 + Notarization | 用户明确不需要（同事走"右键 → 打开"） |
+| ❌ Apple Developer ID 签名 + Notarization | 个人非商业项目，不需要付费签名 |
 | ❌ Sparkle 自动更新 | 用户明确不需要 |
 | ❌ Crash 上报后端 | 用户明确不需要 |
 | ❌ ER 图工具 | 与定位冲突，市场已饱和（Workbench / DBeaver） |
@@ -475,7 +475,7 @@ git clone <repo> && cd my_mac_heidisql
 
 | 项 | 说明 | 影响 |
 |---|---|---|
-| **Ad-hoc 签名** | 同事第一次打开需"右键 → 打开"绕过 Gatekeeper | 一次性 |
+| **Ad-hoc 签名** | 第一次打开需"右键 → 打开"绕过 Gatekeeper | 一次性 |
 | **Keychain 授权** | 重新编译 / 重打包后第一次连接弹一次"始终允许" | 一次性 |
 | **MySQL 5.7 caching_sha2_password** | 已验证 MySQL 8 工作；5.7 用户密码若用新插件未实测 | 老库可能踩坑 |
 | **大 BLOB / GEOMETRY 列** | 只读显示 `[BLOB N bytes]`，不能编辑（PRD §A） | 这类列改不动 |
@@ -551,7 +551,7 @@ swift test
 | 文件 | 说明 |
 |---|---|
 | `dist/MacHeidi.app` | 可直接运行的 .app bundle |
-| `dist/MacHeidi-0.1.0.dmg` | 12 MB，可发同事 |
+| `dist/MacHeidi-0.1.0.dmg` | 12 MB 安装包 |
 | `dist/AppIcon.icns` | 应用图标（多尺寸） |
 | `dist/icon-1024.png` | 图标预览 |
 

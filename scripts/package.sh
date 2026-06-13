@@ -4,7 +4,7 @@
 # 用法：./scripts/package.sh
 #   产出：dist/MacHeidi-0.1.0.dmg
 #
-# 注意：未经 Apple Developer ID 签名 / 公证。同事第一次打开会被
+# 注意：未经 Apple Developer ID 签名 / 公证。第一次打开会被
 # Gatekeeper 拦，需要：
 #   - 右键 .app → 选 "打开" → 在弹窗里再点一次 "打开"
 #   - 或：系统设置 → 隐私与安全 → 拉到底点 "仍要打开"
@@ -94,8 +94,8 @@ if [[ -f "$DIST_DIR/AppIcon.icns" ]]; then
     echo "  ✓ Icon embedded"
 fi
 
-# 临时打个 ad-hoc 签名让同事的 macOS 能跑（非正式 Developer ID 签名）
-echo "▶ Ad-hoc signing (no Developer ID — colleagues need to right-click Open)…"
+# 临时打个 ad-hoc 签名让 macOS 能跑（非正式 Developer ID 签名）
+echo "▶ Ad-hoc signing (no Developer ID — first launch needs right-click Open)…"
 codesign --force --deep --sign - "$APP_PATH" 2>&1 | tail -3 || true
 
 # 验证
@@ -134,7 +134,7 @@ echo ""
 echo "    📦 $DMG_PATH"
 echo "    📏 $DMG_SIZE"
 echo ""
-echo "Send this .dmg to your colleagues. First-launch instructions:"
+echo "Install instructions:"
 echo "  1. Double-click the .dmg"
 echo "  2. Drag $APP_NAME.app to the Applications folder"
 echo "  3. Open Applications, RIGHT-CLICK $APP_NAME → Open → Open"
