@@ -53,13 +53,18 @@ public enum SQLGenerator {
             throw SQLGeneratorError.rowSizeMismatch
         }
 
-        // 校验：无 PK 且修改了 BLOB/TEXT → 拒绝（无法用 WHERE 锁定该行）
+        // 校验：无 PK 且修改了"真二进制 BLOB"或大 TEXT → 拒绝（无法用 WHERE 锁定该行）
+        // BLOB-as-JSON（内容是 JSON 字符串）允许：可以用字符串字面量写回。
         if !schema.hasPrimaryKey {
-            for (colName, _) in changedColumns {
+            for (colName, newValue) in changedColumns {
                 guard let col = schema.columns.first(where: { $0.name == colName }) else {
                     throw SQLGeneratorError.columnNotFound(name: colName)
                 }
-                if col.normalizedType == .blob || isLargeText(col) {
+                if col.normalizedType == .blob {
+                    if !isJSONFlavoredEdit(newValue) {
+                        throw SQLGeneratorError.noPKAndExcludedColumnEdited(column: colName)
+                    }
+                } else if isLargeText(col) {
                     throw SQLGeneratorError.noPKAndExcludedColumnEdited(column: colName)
                 }
             }
@@ -177,7 +182,7 @@ public enum SQLGenerator {
             f.timeZone = TimeZone(secondsFromGMT: 0)
             return "'\(f.string(from: d))'"
         case .time(let s):    return "'\(escapeString(s))'"
-        case .blob:           return "''"   // MVP 不支持 BLOB 写入
+        case .blob(let d):    return blobLiteral(d)
         case .json(let s):    return "'\(escapeString(s))'"
         case .unknown(let s): return "'\(escapeString(s))'"
         }
@@ -189,10 +194,35 @@ public enum SQLGenerator {
         s.replacingOccurrences(of: "'", with: "''")
     }
 
+    /// BLOB 字面量：
+    /// - 空 Data → `''`（与历史行为一致，避免破坏旧 commit）
+    /// - 是合法 UTF-8 + 像 JSON → 字符串字面量（content 入库可读）
+    /// - 否则 → MySQL 十六进制字面量 `0xABCD...`，二进制安全
+    private static func blobLiteral(_ d: Data) -> String {
+        if d.isEmpty { return "''" }
+        if let s = JSONHelper.looksLikeJSONBLOB(d) {
+            return "'\(escapeString(s))'"
+        }
+        // 不是 JSON：用十六进制字面量保留二进制原貌
+        return "0x" + d.map { String(format: "%02X", $0) }.joined()
+    }
+
     private static func isLargeText(_ col: ColumnMeta) -> Bool {
         // PRD §5.3.7.2：BLOB/TEXT 排除
         // text/mediumtext/longtext 都视为 large text
         let t = col.mysqlType.lowercased()
         return t.contains("text")
+    }
+
+    /// 该值是否能"按 JSON 文本"写入 BLOB 列。
+    /// .null 也算（删 BLOB 是允许的）；.blob 内容若是合法 JSON 也算。
+    private static func isJSONFlavoredEdit(_ v: CellValue) -> Bool {
+        switch v {
+        case .null:           return true
+        case .json:           return true
+        case .blob(let d):    return JSONHelper.looksLikeJSONBLOB(d) != nil
+        case .string(let s):  return JSONHelper.isJSON(s)
+        default:              return false
+        }
     }
 }

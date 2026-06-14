@@ -209,8 +209,8 @@ public actor MySQLClient: DBClient {
         let columns: [ColumnMeta] = first.columnDefinitions.map { def in
             ColumnMeta(
                 name: def.name,
-                mysqlType: String(describing: def.columnType),
-                normalizedType: normalize(def.columnType),
+                mysqlType: mysqlTypeString(def),
+                normalizedType: normalize(def.columnType, charset: def.characterSet),
                 nullable: !def.flags.contains(.COLUMN_NOT_NULL),
                 defaultValue: nil,
                 isAutoIncrement: false,    // MySQLNIO 未暴露 AUTO_INCREMENT flag；
@@ -224,13 +224,36 @@ public actor MySQLClient: DBClient {
         }
         let mapped: [[CellValue]] = rows.map { row in
             zip(row.columnDefinitions, row.values).map { def, buf in
-                makeCell(type: def.columnType, buffer: buf, flags: def.flags)
+                makeCell(type: def.columnType, charset: def.characterSet,
+                         buffer: buf, flags: def.flags)
             }
         }
         return ResultSet(columns: columns, rows: mapped, executionTime: elapsed, warnings: [])
     }
 
-    private func normalize(_ t: MySQLProtocol.DataType) -> NormalizedType {
+    /// 把 wire-protocol 的列定义映射到一个**人能看懂**的 mysqlType 字符串。
+    /// 关键修正：`.blob` type code 在 wire 上同时表示 BLOB 与 TEXT，
+    /// 靠 charset 区分（charset == 63 是 binary，即 BLOB；其余是 TEXT）。
+    private func mysqlTypeString(_ def: MySQLProtocol.ColumnDefinition41) -> String {
+        switch def.columnType {
+        case .tinyBlob:
+            return def.characterSet == .binary ? "tinyblob" : "tinytext"
+        case .blob:
+            return def.characterSet == .binary ? "blob" : "text"
+        case .mediumBlob:
+            return def.characterSet == .binary ? "mediumblob" : "mediumtext"
+        case .longBlob:
+            return def.characterSet == .binary ? "longblob" : "longtext"
+        default:
+            return String(describing: def.columnType)
+        }
+    }
+
+    private func normalize(_ t: MySQLProtocol.DataType,
+                           charset: MySQLProtocol.CharacterSet) -> NormalizedType {
+        // MySQL wire 协议里 TEXT 列与 BLOB 共用 type code 0xfc，靠 column charset 区分：
+        //   charset == 63 (binary) → 真二进制 BLOB
+        //   其他 charset (utf8mb4 / latin1 / ...) → TEXT 系列，按 string 处理
         switch t {
         case .tiny, .short, .int24, .long: return .int
         case .longlong:                    return .int
@@ -243,7 +266,7 @@ public actor MySQLClient: DBClient {
         case .bit:                         return .uint
         case .json:                        return .json
         case .tinyBlob, .mediumBlob, .longBlob, .blob:
-            return .blob
+            return charset == .binary ? .blob : .string
         case .varchar, .varString, .string, .enum, .set:
             return .string
         default:
@@ -252,6 +275,7 @@ public actor MySQLClient: DBClient {
     }
 
     private func makeCell(type: MySQLProtocol.DataType,
+                          charset: MySQLProtocol.CharacterSet,
                           buffer: ByteBuffer?,
                           flags: MySQLProtocol.ColumnFlags) -> CellValue {
         guard var buf = buffer, buf.readableBytes > 0 else { return .null }
@@ -270,7 +294,8 @@ public actor MySQLClient: DBClient {
         case .json:
             return .json(s)
         case .tinyBlob, .mediumBlob, .longBlob, .blob:
-            return .blob(Data(s.utf8))
+            // charset == 63 (binary) → 真 BLOB；其他 charset → TEXT 系列
+            return charset == .binary ? .blob(Data(s.utf8)) : .string(s)
         default:
             return .string(s)
         }

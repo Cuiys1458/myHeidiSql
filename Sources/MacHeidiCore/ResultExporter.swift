@@ -145,7 +145,10 @@ public enum ResultExporter {
             f.timeZone = .current
             return f.string(from: d)
         case .time(let s):    return s
-        case .blob(let d):    return "[BLOB \(d.count) bytes]"
+        case .blob(let d):
+            // BLOB-as-JSON：导出为 JSON 字符串（可被重新导入 / 在文本工具里查看）
+            if let s = JSONHelper.looksLikeJSONBLOB(d) { return s }
+            return "[BLOB \(d.count) bytes]"
         case .json(let s):    return s
         case .unknown(let s): return s
         }

@@ -97,6 +97,40 @@ struct EditableResultGrid: View {
     @ViewBuilder
     private func cellEditSheet(for target: EditTarget) -> some View {
         let col = currentColumn(for: target)
+        // JSON-flavored 单元格走专用编辑器
+        if let col = col, isJSONFlavored(col: col, target: target) {
+            JSONEditorSheet(
+                columnName: col.name,
+                mysqlType: col.mysqlType,
+                nullable: col.nullable,
+                text: $editText,
+                onSetNull: col.nullable ? {
+                    commitEdit(target: target, parsed: .null, column: col)
+                } : nil,
+                onCancel: { editingTarget = nil },
+                onApply: {
+                    do {
+                        let parsed: CellValue
+                        if editText.isEmpty && col.nullable {
+                            parsed = try CellValueParser.parseNull(column: col)
+                        } else {
+                            parsed = try CellValueParser.parse(editText, column: col)
+                        }
+                        commitEdit(target: target, parsed: parsed, column: col)
+                    } catch let e as CellValueParseError {
+                        editError = describe(e, column: col)
+                    } catch {
+                        editError = String(describing: error)
+                    }
+                }
+            )
+        } else {
+            defaultEditSheet(for: target, column: col)
+        }
+    }
+
+    @ViewBuilder
+    private func defaultEditSheet(for target: EditTarget, column col: ColumnMeta?) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "pencil.circle.fill").foregroundStyle(Color.accentColor)
@@ -124,17 +158,7 @@ struct EditableResultGrid: View {
                 .buttonStyle(.borderless)
             }
 
-            // JSON 列：Format 按钮（pretty-print）
-            if let col = col, col.normalizedType == .json {
-                Button("Format JSON") {
-                    if let pretty = prettyPrintJSON(editText) {
-                        editText = pretty
-                    }
-                }
-                .buttonStyle(.borderless)
-            }
-
-            // SQL 美化按钮（任意 string 列都可用，但 JSON 已有上面那个）
+            // SQL 美化按钮（任意 string 列都可用）
             if let col = col,
                col.normalizedType == .string,
                looksLikeSQL(editText) {
@@ -176,6 +200,34 @@ struct EditableResultGrid: View {
         .frame(width: 460)
     }
 
+    /// 判断当前编辑的单元格是否应当走 JSON 编辑器：
+    /// - 列类型本身就是 JSON
+    /// - 列类型是 BLOB（charset=binary），但内容是 JSON（即"BLOB-as-JSON"）
+    /// - 列类型是 string（charset≠binary 的 TEXT 系列 / VARCHAR），且当前内容是 JSON
+    ///   （即"TEXT-as-JSON"，常见于 log 表 error_msg / params 这类列）
+    private func isJSONFlavored(col: ColumnMeta, target: EditTarget) -> Bool {
+        if col.normalizedType == .json { return true }
+        // 取当前值（含 pending）或原值
+        let value: CellValue
+        switch target {
+        case .existing(let r, let c):
+            let original = vm.resultSet?.rows[r][c] ?? .null
+            value = vm.newValue(rowIdx: r, column: col.name) ?? original
+        case .insert:
+            // INSERT 占位行：默认走老路径（用户可输文本，parser 会按 JSON 启发式判断）
+            return false
+        }
+        switch (col.normalizedType, value) {
+        case (.blob, .blob(let d)):
+            return JSONHelper.looksLikeJSONBLOB(d) != nil
+        case (.string, .string(let s)):
+            // TEXT-as-JSON 启发式：内容必须是 object/array，避免短字符串误判
+            return JSONHelper.isJSON(s)
+        default:
+            return false
+        }
+    }
+
     // MARK: helpers
 
     private func currentColumn(for target: EditTarget) -> ColumnMeta? {
@@ -207,6 +259,7 @@ struct EditableResultGrid: View {
         case .invalidFloat(let s):   return "Not a valid number: \(s)"
         case .invalidDecimal(let s): return "Not a valid decimal: \(s)"
         case .invalidBool(let s):    return "Not a valid boolean: \(s)"
+        case .invalidJSON(let m):    return "Invalid JSON: \(m)"
         case .nullNotAllowed:        return "Column \(column.name) does not allow NULL"
         case .unsupported:           return "Editing this type is not supported"
         }
@@ -227,7 +280,10 @@ struct EditableResultGrid: View {
             f.timeZone = .current
             return f.string(from: d)
         case .time(let s):    return s
-        case .blob(let d):    return "[BLOB \(d.count) bytes]"
+        case .blob(let d):
+            // BLOB-as-JSON：内容是 JSON 字符串时直接显示
+            if let s = JSONHelper.looksLikeJSONBLOB(d) { return s }
+            return "[BLOB \(d.count) bytes]"
         case .json(let s):    return s
         case .unknown(let s): return s
         }
@@ -620,7 +676,12 @@ extension NativeGridRepresentable {
             f.timeZone = .current
             return f.string(from: d)
         case .time(let s):    return s
-        case .blob(let d):    return "[BLOB \(d.count) bytes]"
+        case .blob(let d):
+            // BLOB-as-JSON：表格里以单行 minified 形式预览
+            if let s = JSONHelper.looksLikeJSONBLOB(d), let mini = JSONHelper.minify(s) {
+                return mini
+            }
+            return "[BLOB \(d.count) bytes]"
         case .json(let s):    return s
         case .unknown(let s): return s
         }
@@ -632,9 +693,27 @@ extension NativeGridRepresentable {
         case .bool:                              return .systemBlue
         case .date, .datetime, .time:            return .systemPurple
         case .json:                              return .systemGreen
-        case .blob:                              return .secondaryLabelColor
+        case .blob(let d):
+            // BLOB-as-JSON 也用绿色 → 与 JSON 列视觉一致
+            return JSONHelper.looksLikeJSONBLOB(d) != nil
+                ? .systemGreen
+                : .secondaryLabelColor
+        case .string(let s):
+            // TEXT-as-JSON：fast-path 看首字符避免每行全量 JSON 解析
+            return looksLikeJSONFast(s) ? .systemGreen : .labelColor
         default:                                 return .labelColor
         }
+    }
+
+    /// 单帧渲染热路径用的快速 JSON 启发式：只看首尾，不调 JSONSerialization。
+    /// false negative 可接受（颜色判错没大事），目标是 O(1) 不卡渲染。
+    fileprivate func looksLikeJSONFast(_ s: String) -> Bool {
+        guard s.count >= 2 else { return false }
+        let trimmed = s.drop { $0.isWhitespace }
+        guard let first = trimmed.first else { return false }
+        if first != "{" && first != "[" { return false }
+        // 已经像 JSON：再走一次完整解析以排除 "{ broken" 这种纯文本
+        return JSONHelper.isJSON(s)
     }
 }
 

@@ -6,6 +6,7 @@ public enum CellValueParseError: Error, Equatable {
     case invalidFloat(String)
     case invalidDecimal(String)
     case invalidBool(String)
+    case invalidJSON(String)
     case nullNotAllowed
     case unsupported
 }
@@ -51,14 +52,25 @@ public enum CellValueParser {
         case .string:
             return .string(raw)
         case .json:
-            return .json(raw)
+            // 校验 JSON 语法。允许 trailing comma（Foundation 的宽松行为）。
+            switch JSONHelper.validate(raw) {
+            case .valid:
+                return .json(raw)
+            case .invalid(let message, _):
+                throw CellValueParseError.invalidJSON(message)
+            }
         case .date, .datetime:
             // 文本透传，由 server 校验（MVP）
             return .string(raw)
         case .time:
             return .time(raw)
         case .blob, .unknown:
-            // PRD §A：BLOB / 空间类型 MVP 只读
+            // BLOB-as-JSON 兼容：BLOB 列里如果用户输入合法 JSON，把它当 JSON 文本写回
+            // （`SQLGenerator.literal` 会用字符串字面量包装）。
+            // 真二进制 BLOB（图片等）维持只读。
+            if column.normalizedType == .blob, JSONHelper.isJSON(raw) {
+                return .blob(Data(raw.utf8))
+            }
             throw CellValueParseError.unsupported
         }
     }

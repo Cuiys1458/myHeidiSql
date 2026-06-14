@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import MacHeidiCore
 
 @Suite("CellValueParser S3.6 type validation")
@@ -86,6 +87,56 @@ struct CellValueParserTests {
         let col = ColumnMeta.varchar(name: "name", nullable: true)
         #expect(try CellValueParser.parse("Alice", column: col) == .string("Alice"))
         #expect(try CellValueParser.parse("", column: col) == .string(""))
+    }
+
+    // MARK: JSON / BLOB-as-JSON
+
+    @Test("JSON column accepts valid JSON")
+    func jsonAccepts() throws {
+        let col = ColumnMeta(
+            name: "payload", mysqlType: "json",
+            normalizedType: .json, nullable: true, defaultValue: nil,
+            isAutoIncrement: false, isUnsigned: false,
+            maxLength: nil, precision: nil, scale: nil, comment: ""
+        )
+        #expect(try CellValueParser.parse(#"{"a":1}"#, column: col) == .json(#"{"a":1}"#))
+    }
+
+    @Test("JSON column rejects malformed JSON")
+    func jsonRejects() {
+        let col = ColumnMeta(
+            name: "payload", mysqlType: "json",
+            normalizedType: .json, nullable: true, defaultValue: nil,
+            isAutoIncrement: false, isUnsigned: false,
+            maxLength: nil, precision: nil, scale: nil, comment: ""
+        )
+        #expect(throws: CellValueParseError.self) {
+            _ = try CellValueParser.parse("{invalid", column: col)
+        }
+    }
+
+    @Test("BLOB column accepts JSON text → returns .blob with UTF-8 bytes")
+    func blobAcceptsJSON() throws {
+        let col = ColumnMeta.blob(name: "error_msg")
+        let json = #"{"code":500,"msg":"oops"}"#
+        let result = try CellValueParser.parse(json, column: col)
+        #expect(result == .blob(Data(json.utf8)))
+    }
+
+    @Test("BLOB column rejects plain text (not JSON)")
+    func blobRejectsPlainText() {
+        let col = ColumnMeta.blob(name: "data")
+        #expect(throws: CellValueParseError.self) {
+            _ = try CellValueParser.parse("hello world", column: col)
+        }
+    }
+
+    @Test("BLOB column rejects bare number")
+    func blobRejectsBareNumber() {
+        let col = ColumnMeta.blob(name: "data")
+        #expect(throws: CellValueParseError.self) {
+            _ = try CellValueParser.parse("42", column: col)
+        }
     }
 }
 

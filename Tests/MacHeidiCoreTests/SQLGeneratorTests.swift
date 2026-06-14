@@ -227,4 +227,44 @@ struct SQLGeneratorTests {
         #expect(SQLGenerator.literal(.bool(true)) == "1")
         #expect(SQLGenerator.literal(.bool(false)) == "0")
     }
+
+    // MARK: BLOB-as-JSON literal (S5.3.7 extension)
+
+    @Test("Literal: BLOB containing JSON → string literal")
+    func literalBlobAsJSON() {
+        let json = #"{"code":500,"msg":"oops"}"#
+        let result = SQLGenerator.literal(.blob(Data(json.utf8)))
+        #expect(result == "'\(json)'")
+    }
+
+    @Test("Literal: BLOB containing JSON with single quote → escaped")
+    func literalBlobAsJSONWithQuote() {
+        let json = #"{"msg":"it's fine"}"#
+        let result = SQLGenerator.literal(.blob(Data(json.utf8)))
+        #expect(result == #"'{"msg":"it''s fine"}'"#)
+    }
+
+    @Test("Literal: binary BLOB → hex literal 0x...")
+    func literalBlobBinary() {
+        // FFD8 FFE0 = JPEG header — 不是 JSON
+        let result = SQLGenerator.literal(.blob(Data([0xFF, 0xD8, 0xFF, 0xE0])))
+        #expect(result == "0xFFD8FFE0")
+    }
+
+    @Test("Literal: empty BLOB → '' (back-compat)")
+    func literalBlobEmpty() {
+        #expect(SQLGenerator.literal(.blob(Data())) == "''")
+    }
+
+    @Test("No-PK UPDATE allows editing BLOB-as-JSON column")
+    func noPKAllowsBlobAsJSONEdit() throws {
+        let schema = noPKTableWithText()
+        let json = #"{"new":"value"}"#
+        let sql = try SQLGenerator.update(
+            database: dbName, table: "x", schema: schema,
+            originalRow: [.int(1), .string("hello"), .blob(Data(#"{"old":"value"}"#.utf8))],
+            changedColumns: ["avatar": .blob(Data(json.utf8))]
+        )
+        #expect(sql.contains("`avatar` = '\(json)'"))
+    }
 }

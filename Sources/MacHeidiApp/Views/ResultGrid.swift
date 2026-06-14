@@ -172,7 +172,14 @@ struct ResultGrid: View {
         case .bool:        return .blue
         case .date, .datetime, .time: return .purple
         case .json:        return .green
-        case .blob:        return .secondary
+        case .blob(let d): return JSONHelper.looksLikeJSONBLOB(d) != nil ? .green : .secondary
+        case .string(let s):
+            // TEXT-as-JSON 启发式：首字符 + 完整解析（fast path 已避免大头）
+            let trimmed = s.drop { $0.isWhitespace }
+            if let first = trimmed.first, first == "{" || first == "[", JSONHelper.isJSON(s) {
+                return .green
+            }
+            return .primary
         default:           return .primary
         }
     }
@@ -237,7 +244,11 @@ struct ResultGrid: View {
             f.timeZone = .current
             return f.string(from: d)
         case .time(let s):    return s
-        case .blob(let d):    return "[BLOB \(d.count) bytes]"
+        case .blob(let d):
+            if let s = JSONHelper.looksLikeJSONBLOB(d), let mini = JSONHelper.minify(s) {
+                return mini
+            }
+            return "[BLOB \(d.count) bytes]"
         case .json(let s):    return s
         case .unknown(let s): return s
         }
