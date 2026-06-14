@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 同名 workflow 之前的 run 自动取消，省 minutes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────
+  # 1) 跑核心单元测试（不依赖 MySQL）
+  # ─────────────────────────────────────
+  test:
+    name: Test (core, no MySQL)
+    runs-on: macos-14   # 提供 Apple Silicon + Xcode 15+
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcrun swift --version
+          xcodebuild -version
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      - name: Build
+        run: swift build -c debug
+
+      - name: Run core tests
+        run: swift test --skip MacHeidiMySQLTests --parallel
+
+  # ─────────────────────────────────────
+  # 2) Tag 推送时自动出 .dmg 上传到 Release
+  # ─────────────────────────────────────
+  release:
+    name: Build .dmg & attach to Release
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-14
+    timeout-minutes: 30
+    permissions:
+      contents: write    # 写 Release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      - name: Extract version from tag
+        id: ver
+        run: |
+          # tag 形如 v0.1.1 → VERSION=0.1.1
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build universal .dmg
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          ./scripts/package.sh
+          ls -lh dist/
+
+      - name: Upload .dmg to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/MacHeidi-${{ steps.ver.outputs.version }}.dmg
+          # 自动用 git tag annotation 当 release notes，没有就空
+          generate_release_notes: true
+          # 如果 release 已存在就更新（手工建过就不会被覆盖标题）
+          fail_on_unmatched_files: true

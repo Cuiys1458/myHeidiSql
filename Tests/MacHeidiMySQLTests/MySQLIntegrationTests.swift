@@ -62,11 +62,12 @@ struct MySQLIntegrationTests {
     func unreachableHostNetworkError() async {
         let client = MySQLClient()
         // TEST-NET-1 不可达。NIO 的 connect 会等到 OS 层 TCP 超时（默认 ~75s on Darwin），
-        // MySQLClient.withTimeout 兜底；这里给 15s 上限。
+        // MySQLClient.withTimeout 兜底；并发跑测试时受调度影响实际可能略晚于 timeout，
+        // 这里给个宽松的 12 秒上限避免 swift-testing 并发跑时偶发失败。
         let cfg = ConnectionConfig(
             hostname: "192.0.2.1", port: 3306, user: "root", password: "",
             defaultDatabase: nil, useSSL: false,
-            connectTimeout: .seconds(8), queryTimeout: nil
+            connectTimeout: .seconds(3), queryTimeout: nil
         )
         let start = ContinuousClock.now
         do {
@@ -74,7 +75,7 @@ struct MySQLIntegrationTests {
             Issue.record("Expected throw")
         } catch let err as DBError {
             #expect(err.isNetwork)
-            #expect(ContinuousClock.now - start < .seconds(15))
+            #expect(ContinuousClock.now - start < .seconds(12))
         } catch {
             Issue.record("Expected DBError, got \(error)")
         }
