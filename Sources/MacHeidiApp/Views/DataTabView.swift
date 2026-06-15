@@ -112,7 +112,7 @@ struct DataTabView: View {
                     Button("Export All as SQL…") { exportAll(.sql) }
                 }
             } label: {
-                Label("Export", systemImage: "square.and.arrow.up")
+                Label(L("data.export"), systemImage: "square.and.arrow.up")
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
@@ -122,7 +122,7 @@ struct DataTabView: View {
             Button {
                 Task { await vm.loadCurrentPage(env: env, whereClause: appliedWhere) }
             } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
+                Label(L("data.refresh"), systemImage: "arrow.clockwise")
             }
             .keyboardShortcut("r", modifiers: .command)
             .disabled(vm.hasPending)
@@ -228,14 +228,14 @@ struct DataTabView: View {
             Button {
                 Task { await vm.attemptCommit(env: env) }
             } label: {
-                Label("Commit", systemImage: "checkmark.circle.fill")
+                Label(L("data.commit"), systemImage: "checkmark.circle.fill")
             }
             .buttonStyle(.borderedProminent)
             .keyboardShortcut(.return, modifiers: .command)
             Button {
                 vm.discardAll()
             } label: {
-                Label("Discard", systemImage: "xmark.circle")
+                Label(L("data.discard"), systemImage: "xmark.circle")
             }
             .buttonStyle(.bordered)
         }

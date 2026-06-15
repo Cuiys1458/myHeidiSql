@@ -13,7 +13,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-VERSION="${VERSION:-0.2.0}"
+VERSION="${VERSION:-0.3.0}"
 APP_NAME="MacHeidi"
 BUNDLE_ID="com.macheidi.app"
 DIST_DIR="dist"

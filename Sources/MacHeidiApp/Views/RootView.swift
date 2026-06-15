@@ -14,13 +14,13 @@ struct RootView: View {
                         .foregroundStyle(.red)
                     Text("Connection to '\(env.activeSession?.name ?? "")' was lost.")
                         .foregroundStyle(.primary)
-                    Button("Reconnect") {
+                    Button(L("data.reconnect")) {
                         Task { await env.reconnectActive() }
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.accentColor)
                     .controlSize(.small)
-                    Button("Dismiss") {
+                    Button(L("data.dismiss")) {
                         env.disconnectActive()
                     }
                     .buttonStyle(.bordered)
@@ -69,7 +69,7 @@ struct RootView: View {
                 Button {
                     showSessionManager = true
                 } label: {
-                    Label("Sessions", systemImage: "server.rack")
+                    Label(L("toolbar.sessions"), systemImage: "server.rack")
                 }
                 .help("Manage connections (⌘⇧S)")
                 .keyboardShortcut("s", modifiers: [.command, .shift])
@@ -78,7 +78,7 @@ struct RootView: View {
                 Button {
                     showHistory = true
                 } label: {
-                    Label("History", systemImage: "clock.arrow.circlepath")
+                    Label(L("toolbar.history"), systemImage: "clock.arrow.circlepath")
                 }
                 .help("Query history (⌘Y)")
                 .keyboardShortcut("y", modifiers: .command)
@@ -87,7 +87,7 @@ struct RootView: View {
                 Button {
                     Task { await env.refreshSelected() }
                 } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
+                    Label(L("toolbar.refresh"), systemImage: "arrow.clockwise")
                 }
                 .help("Refresh current node (F5 / ⌘R)")
                 .keyboardShortcut("r", modifiers: .command)
@@ -97,7 +97,7 @@ struct RootView: View {
                 Button {
                     env.openNewQueryTab()
                 } label: {
-                    Label("New Query", systemImage: "plus.rectangle")
+                    Label(L("toolbar.newQuery"), systemImage: "plus.rectangle")
                 }
                 .disabled(env.activeSession == nil)
             }
@@ -105,7 +105,7 @@ struct RootView: View {
                 Button {
                     env.disconnectActive()
                 } label: {
-                    Label("Disconnect", systemImage: "eject")
+                    Label(L("toolbar.disconnect"), systemImage: "eject")
                 }
                 .disabled(env.activeSession == nil)
             }
@@ -221,17 +221,17 @@ private struct EmptyMainView: View {
                 .controlSize(.large)
                 .keyboardShortcut("n", modifiers: .command)
             } else {
-                Text("No session open")
+                Text(L("welcome.title"))
                     .font(.title2)
                     .foregroundStyle(.secondary)
-                Text("Double-click a session in the sidebar to connect, or open the manager to edit.")
+                Text(L("welcome.subtitle"))
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 360)
                 Button {
                     onNewSession()
                 } label: {
-                    Label("Open Session Manager", systemImage: "server.rack")
+                    Label(L("welcome.openManager"), systemImage: "server.rack")
                 }
                 .controlSize(.large)
             }

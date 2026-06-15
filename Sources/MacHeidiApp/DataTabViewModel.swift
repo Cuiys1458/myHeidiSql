@@ -29,6 +29,24 @@ final class DataTabViewModel {
     /// 没有 warning 用户根本不知道结果为啥不对。
     private(set) var warnings: [String] = []
 
+    /// 批量编辑请求 token —— Coordinator 改这个 flag，SwiftUI view onChange 弹 sheet。
+    /// 用 UUID 避免同一组 rows 第二次请求时 onChange 不触发。
+    var bulkEditRequest: BulkEditRequest?
+
+    struct BulkEditRequest: Equatable {
+        let id: UUID
+        let rowIndices: [Int]
+        let columnName: String
+    }
+
+    func requestBulkEdit(rowIndices: [Int], columnName: String) {
+        bulkEditRequest = BulkEditRequest(
+            id: UUID(),
+            rowIndices: rowIndices,
+            columnName: columnName
+        )
+    }
+
     /// 当前编辑状态
     private(set) var pending = PendingEdits()
 

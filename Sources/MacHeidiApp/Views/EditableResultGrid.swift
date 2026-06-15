@@ -12,6 +12,17 @@ struct EditableResultGrid: View {
     @State private var editText: String = ""
     @State private var editError: String?
 
+    /// 批量编辑 sheet 显示用
+    @State private var bulkEditing: BulkEditingState?
+
+    struct BulkEditingState: Identifiable {
+        let id = UUID()
+        let rowIndices: [Int]
+        var columnName: String
+        var value: String
+        var error: String?
+    }
+
     enum EditTarget: Identifiable {
         case existing(rowIdx: Int, columnIndex: Int)
         case insert(localId: UUID, columnIndex: Int)
@@ -42,6 +53,14 @@ struct EditableResultGrid: View {
         }
         .sheet(item: $editingTarget) { target in
             cellEditSheet(for: target)
+        }
+        .sheet(item: $bulkEditing) { _ in
+            bulkEditSheet()
+        }
+        .onChange(of: vm.bulkEditRequest) { _, req in
+            guard let req else { return }
+            startBulkEdit(rowIndices: req.rowIndices, columnName: req.columnName)
+            vm.bulkEditRequest = nil
         }
     }
 
@@ -226,6 +245,114 @@ struct EditableResultGrid: View {
         default:
             return false
         }
+    }
+
+    // MARK: bulk edit sheet
+
+    @ViewBuilder
+    private func bulkEditSheet() -> some View {
+        if let state = bulkEditing,
+           let cols = vm.resultSet?.columns {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "rectangle.stack.fill.badge.plus")
+                        .foregroundStyle(Color.accentColor)
+                    Text("Set Selected Cells")
+                        .font(.headline)
+                    Spacer()
+                    Text("\(state.rowIndices.count) rows")
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                }
+
+                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                    GridRow {
+                        Text("Column").font(.caption)
+                        Picker("", selection: bulkColumnBinding) {
+                            ForEach(cols, id: \.name) { c in
+                                Text(c.name).tag(c.name)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 280)
+                    }
+                    GridRow {
+                        Text("Value").font(.caption)
+                        TextField("(留空 = 设为 NULL，仅 nullable 列)",
+                                  text: bulkValueBinding)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(.body, design: .monospaced))
+                            .frame(width: 360)
+                    }
+                }
+
+                if let err = state.error {
+                    Text(err).foregroundStyle(.red).font(.caption.monospaced())
+                }
+
+                HStack {
+                    Spacer()
+                    Button("Cancel") { bulkEditing = nil }
+                        .keyboardShortcut(.cancelAction)
+                    Button("Apply to \(state.rowIndices.count) rows") {
+                        applyBulkEdit()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+            .padding(20)
+            .frame(width: 520)
+        }
+    }
+
+    private var bulkColumnBinding: Binding<String> {
+        Binding(
+            get: { bulkEditing?.columnName ?? "" },
+            set: { bulkEditing?.columnName = $0; bulkEditing?.error = nil }
+        )
+    }
+    private var bulkValueBinding: Binding<String> {
+        Binding(
+            get: { bulkEditing?.value ?? "" },
+            set: { bulkEditing?.value = $0; bulkEditing?.error = nil }
+        )
+    }
+
+    private func applyBulkEdit() {
+        guard var state = bulkEditing,
+              let cols = vm.resultSet?.columns,
+              let col = cols.first(where: { $0.name == state.columnName }),
+              let columnIndex = cols.firstIndex(where: { $0.name == state.columnName })
+        else { return }
+        do {
+            let parsed: CellValue
+            if state.value.isEmpty && col.nullable {
+                parsed = try CellValueParser.parseNull(column: col)
+            } else {
+                parsed = try CellValueParser.parse(state.value, column: col)
+            }
+            for rowIdx in state.rowIndices {
+                vm.editCell(rowIdx: rowIdx, columnIndex: columnIndex, newValue: parsed)
+            }
+            bulkEditing = nil
+        } catch let e as CellValueParseError {
+            state.error = describe(e, column: col)
+            bulkEditing = state
+        } catch {
+            state.error = String(describing: error)
+            bulkEditing = state
+        }
+    }
+
+    /// 由 NSTableView Coordinator 在右键 "Set Selected Cells…" 触发。
+    func startBulkEdit(rowIndices: [Int], columnName: String) {
+        bulkEditing = BulkEditingState(
+            rowIndices: rowIndices,
+            columnName: columnName,
+            value: "",
+            error: nil
+        )
     }
 
     // MARK: helpers
@@ -418,6 +545,12 @@ private struct NativeGridRepresentable: NSViewRepresentable {
         unmark.target = coord
         menu.addItem(unmark)
         menu.addItem(.separator())
+        let bulkEdit = NSMenuItem(title: "Set Selected Cells…",
+                                  action: #selector(Coordinator.bulkEditClicked(_:)),
+                                  keyEquivalent: "")
+        bulkEdit.target = coord
+        menu.addItem(bulkEdit)
+        menu.addItem(.separator())
         let copyInsert = NSMenuItem(title: "Copy as INSERT",
                                     action: #selector(Coordinator.copyAsInsert(_:)),
                                     keyEquivalent: "")
@@ -609,6 +742,36 @@ private struct NativeGridRepresentable: NSViewRepresentable {
             let pb = NSPasteboard.general
             pb.clearContents()
             pb.setString(payload, forType: .string)
+        }
+
+        /// 右键 → Set Selected Cells…：根据点的列 + 选中的行，触发 SwiftUI sheet。
+        @objc func bulkEditClicked(_ sender: AnyObject?) {
+            guard let table = tableView,
+                  let cols = parent.vm.resultSet?.columns else { return }
+            // 列：用右键命中的列；行号列（__line__）跳过 → 默认第一可编辑列
+            let clickedCol = table.clickedColumn
+            let id = (clickedCol >= 0 && clickedCol < table.tableColumns.count)
+                ? table.tableColumns[clickedCol].identifier.rawValue
+                : ""
+            let columnName: String
+            if id != "__line__", !id.isEmpty,
+               cols.contains(where: { $0.name == id }) {
+                columnName = id
+            } else {
+                columnName = cols.first?.name ?? ""
+            }
+            // 行：选中的行（含右键命中的当前行）
+            let sorted = parent.vm.sortedRowsWithOrigIdx()
+            var visibleRows = Array(table.selectedRowIndexes)
+            if visibleRows.isEmpty, table.clickedRow >= 0 {
+                visibleRows = [table.clickedRow]
+            }
+            let rowIndices = visibleRows.compactMap { vr -> Int? in
+                guard vr < sorted.count else { return nil }
+                return sorted[vr].origIdx
+            }
+            guard !rowIndices.isEmpty, !columnName.isEmpty else { return }
+            parent.vm.requestBulkEdit(rowIndices: rowIndices, columnName: columnName)
         }
 
         // MARK: column resize → 持久化

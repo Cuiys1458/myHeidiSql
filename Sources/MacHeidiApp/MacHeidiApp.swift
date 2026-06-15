@@ -8,11 +8,27 @@ struct MacHeidiApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var env = AppEnvironment.make()
 
+    /// 显示语言偏好（用 UserDefaults 持久化，不改的话跟系统）：
+    ///   defaults write com.macheidi.app MacHeidiLanguage zh-Hans
+    ///   defaults write com.macheidi.app MacHeidiLanguage en
+    /// 删除该 key 即跟随系统。
+    private var preferredLocale: Locale? {
+        guard let lang = UserDefaults.standard.string(forKey: "MacHeidiLanguage"),
+              !lang.isEmpty else { return nil }
+        return Locale(identifier: lang)
+    }
+
     var body: some Scene {
         WindowGroup("MacHeidi") {
-            RootView()
-                .environment(env)
-                .frame(minWidth: 900, minHeight: 600)
+            Group {
+                if let locale = preferredLocale {
+                    RootView().environment(\.locale, locale)
+                } else {
+                    RootView()
+                }
+            }
+            .environment(env)
+            .frame(minWidth: 900, minHeight: 600)
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
