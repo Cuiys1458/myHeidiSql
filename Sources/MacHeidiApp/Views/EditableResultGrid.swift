@@ -625,8 +625,9 @@ private struct NativeGridRepresentable: NSViewRepresentable {
             let view = (tableView.makeView(withIdentifier: id, owner: nil) as? HoverableRowView)
                 ?? HoverableRowView()
             view.identifier = id
-            view.parent = tableView as? CopyableTableView
-            view.rowIndex = row
+            if let copyable = tableView as? CopyableTableView {
+                view.attach(to: copyable)
+            }
             return view
         }
 
@@ -941,21 +942,21 @@ extension NativeGridRepresentable {
 /// 支持 Cmd+C 复制选中行（TSV 格式，含 header）的 NSTableView 子类。
 private final class CopyableTableView: NSTableView {
 
-    /// 鼠标悬停的行索引（-1 = 没在任何行上）。改动时刷新前后两行。
-    private(set) var hoveredRow: Int = -1 {
+    /// 鼠标悬停的行索引（-1 = 没在任何行上）。
+    /// 改动时直接重画两个 row view 的背景，**不**走 reloadData（reloadData 会
+    /// 销毁正在编辑的 cell view，hover 不应触发那么重的操作）。
+    var hoveredRow: Int = -1 {
         didSet {
             guard hoveredRow != oldValue else { return }
-            var rowsToReload = IndexSet()
-            if oldValue >= 0 && oldValue < numberOfRows {
-                rowsToReload.insert(oldValue)
-            }
-            if hoveredRow >= 0 && hoveredRow < numberOfRows {
-                rowsToReload.insert(hoveredRow)
-            }
-            if !rowsToReload.isEmpty {
-                let allCols = IndexSet(integersIn: 0..<numberOfColumns)
-                reloadData(forRowIndexes: rowsToReload, columnIndexes: allCols)
-            }
+            redrawRowBackground(at: oldValue)
+            redrawRowBackground(at: hoveredRow)
+        }
+    }
+
+    private func redrawRowBackground(at row: Int) {
+        guard row >= 0, row < numberOfRows else { return }
+        if let rv = rowView(atRow: row, makeIfNecessary: false) {
+            rv.needsDisplay = true
         }
     }
 
@@ -967,11 +968,23 @@ private final class CopyableTableView: NSTableView {
         }
         let area = NSTrackingArea(
             rect: bounds,
-            options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow, .inVisibleRect],
+            options: [
+                .mouseEnteredAndExited,
+                .mouseMoved,
+                .activeInKeyWindow,
+                .inVisibleRect,
+                .assumeInside
+            ],
             owner: self,
             userInfo: nil
         )
         addTrackingArea(area)
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        // 关键：默认 NSWindow 不发 mouseMoved，必须显式开
+        window?.acceptsMouseMovedEvents = true
     }
 
     override func mouseMoved(with event: NSEvent) {
@@ -979,6 +992,13 @@ private final class CopyableTableView: NSTableView {
         let row = self.row(at: loc)
         hoveredRow = row
         super.mouseMoved(with: event)
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        // 进入但还没移动也算一次定位
+        let loc = convert(event.locationInWindow, from: nil)
+        hoveredRow = row(at: loc)
+        super.mouseEntered(with: event)
     }
 
     override func mouseExited(with event: NSEvent) {
@@ -1029,15 +1049,24 @@ private final class CopyableTableView: NSTableView {
 }
 
 /// 行 hover 高亮 row view —— 鼠标悬停时画浅色背景。
+///
+/// 关键：row index 不存 instance var（NSTableView 复用 view 时不会同步更新），
+/// 而是在 draw 时通过 `tableView.row(for: self)` 反查当前帧的真实索引。
 private final class HoverableRowView: NSTableRowView {
-    weak var parent: CopyableTableView?
-    var rowIndex: Int = -1
+
+    private weak var ownerTable: CopyableTableView?
+
+    func attach(to table: CopyableTableView) {
+        ownerTable = table
+    }
 
     override func drawBackground(in dirtyRect: NSRect) {
         super.drawBackground(in: dirtyRect)
-        guard let parent, parent.hoveredRow == rowIndex else { return }
-        // 跟随系统主题：选中色 12% alpha
-        NSColor.controlAccentColor.withAlphaComponent(0.12).setFill()
+        guard let table = ownerTable else { return }
+        let myRow = table.row(for: self)
+        guard myRow >= 0, table.hoveredRow == myRow else { return }
+        // 跟随系统主题 accent，选中色 14% alpha
+        NSColor.controlAccentColor.withAlphaComponent(0.14).setFill()
         bounds.fill()
     }
 }
