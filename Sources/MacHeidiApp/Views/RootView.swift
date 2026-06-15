@@ -5,6 +5,7 @@ struct RootView: View {
     @Environment(AppEnvironment.self) private var env
     @State private var showSessionManager = false
     @State private var showHistory = false
+    @AppStorage("MacHeidiLanguage") private var preferredLanguage: String = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -108,6 +109,49 @@ struct RootView: View {
                     Label(L("toolbar.disconnect"), systemImage: "eject")
                 }
                 .disabled(env.activeSession == nil)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        preferredLanguage = ""
+                    } label: {
+                        HStack {
+                            Text("System Default")
+                            if preferredLanguage.isEmpty {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                    Divider()
+                    Button {
+                        preferredLanguage = "en"
+                    } label: {
+                        HStack {
+                            Text("English")
+                            if preferredLanguage == "en" {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                    Button {
+                        preferredLanguage = "zh-Hans"
+                    } label: {
+                        HStack {
+                            Text("简体中文")
+                            if preferredLanguage == "zh-Hans" {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                } label: {
+                    Image(systemName: "globe")
+                }
+                .help("Language / 语言")
+                .menuStyle(.borderlessButton)
+                .fixedSize()
             }
         }
         .sheet(isPresented: $showSessionManager) {

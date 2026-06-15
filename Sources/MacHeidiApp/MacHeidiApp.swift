@@ -8,14 +8,16 @@ struct MacHeidiApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var env = AppEnvironment.make()
 
-    /// 显示语言偏好（用 UserDefaults 持久化，不改的话跟系统）：
-    ///   defaults write com.macheidi.app MacHeidiLanguage zh-Hans
-    ///   defaults write com.macheidi.app MacHeidiLanguage en
-    /// 删除该 key 即跟随系统。
+    /// 语言偏好（响应式）：
+    /// - "" → 跟随系统
+    /// - "zh-Hans" → 中文
+    /// - "en" → 英文
+    /// 改 key 后整个 WindowGroup 自动 rebuild，UI 立即切换不用重启。
+    @AppStorage("MacHeidiLanguage") private var preferredLanguage: String = ""
+
     private var preferredLocale: Locale? {
-        guard let lang = UserDefaults.standard.string(forKey: "MacHeidiLanguage"),
-              !lang.isEmpty else { return nil }
-        return Locale(identifier: lang)
+        guard !preferredLanguage.isEmpty else { return nil }
+        return Locale(identifier: preferredLanguage)
     }
 
     var body: some Scene {
@@ -39,6 +41,37 @@ struct MacHeidiApp: App {
                 }
                 .keyboardShortcut("t", modifiers: .command)
                 .disabled(env.activeSession == nil)
+            }
+            // 主菜单：View → Language
+            CommandMenu("Language") {
+                Button {
+                    preferredLanguage = ""
+                } label: {
+                    if preferredLanguage.isEmpty {
+                        Label("System Default", systemImage: "checkmark")
+                    } else {
+                        Text("System Default")
+                    }
+                }
+                Divider()
+                Button {
+                    preferredLanguage = "en"
+                } label: {
+                    if preferredLanguage == "en" {
+                        Label("English", systemImage: "checkmark")
+                    } else {
+                        Text("English")
+                    }
+                }
+                Button {
+                    preferredLanguage = "zh-Hans"
+                } label: {
+                    if preferredLanguage == "zh-Hans" {
+                        Label("简体中文", systemImage: "checkmark")
+                    } else {
+                        Text("简体中文")
+                    }
+                }
             }
         }
     }
