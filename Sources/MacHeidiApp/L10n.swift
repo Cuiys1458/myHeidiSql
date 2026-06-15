@@ -30,6 +30,15 @@ extension Button where Label == Text {
             Text(key.value, bundle: .module)
         }
     }
+
+    /// Button(L("key"), role: .destructive) { ... }
+    init(_ key: ModuleLocalizedKey,
+         role: ButtonRole?,
+         action: @escaping () -> Void) {
+        self.init(role: role, action: action) {
+            Text(key.value, bundle: .module)
+        }
+    }
 }
 
 extension Label where Title == Text, Icon == Image {

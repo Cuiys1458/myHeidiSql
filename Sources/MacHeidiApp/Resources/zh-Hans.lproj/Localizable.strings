@@ -13,6 +13,34 @@
 "sidebar.procedures" = "存储过程";
 "sidebar.functions" = "函数";
 "sidebar.triggers" = "触发器";
+"sidebar.noMatches" = "未找到匹配";
+"sidebar.loading" = "加载中…";
+
+// Sidebar - 表右键菜单
+"menu.openData" = "打开数据";
+"menu.showTableInfo" = "查看表信息";
+"menu.copyTableName" = "复制表名";
+"menu.copyCreate" = "复制 CREATE 语句";
+"menu.importCSV" = "导入 CSV…";
+"menu.truncateTable" = "清空表…";
+
+// Sidebar - 会话右键菜单
+"menu.openSession" = "打开";
+"menu.editSession" = "编辑会话…";
+"menu.duplicateSession" = "复制会话";
+"menu.deleteSession" = "删除";
+
+// Truncate 二次确认
+"truncate.title" = "清空 `%@`.`%@`？";
+"truncate.warning" = "此操作将删除表中所有数据，且不可撤销。";
+"truncate.confirm" = "我已理解此操作不可撤销。";
+"truncate.button" = "清空";
+"truncate.cancel" = "取消";
+
+// 删除会话确认
+"deleteSession.permanent" = "永久删除";
+"deleteSession.cancel" = "取消";
+"deleteSession.subtitle" = "会话「%@」将从 MacHeidi 永久删除。";
 
 // Toolbar
 "toolbar.sessions" = "会话";

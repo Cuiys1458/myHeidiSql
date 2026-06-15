@@ -13,6 +13,34 @@
 "sidebar.procedures" = "Procedures";
 "sidebar.functions" = "Functions";
 "sidebar.triggers" = "Triggers";
+"sidebar.noMatches" = "No matches";
+"sidebar.loading" = "Loading…";
+
+// Sidebar - Table context menu
+"menu.openData" = "Open Data";
+"menu.showTableInfo" = "Show Table Info";
+"menu.copyTableName" = "Copy Table Name";
+"menu.copyCreate" = "Copy CREATE Statement";
+"menu.importCSV" = "Import CSV…";
+"menu.truncateTable" = "Truncate Table…";
+
+// Sidebar - Session context menu
+"menu.openSession" = "Open";
+"menu.editSession" = "Edit Session…";
+"menu.duplicateSession" = "Duplicate";
+"menu.deleteSession" = "Delete";
+
+// Truncate dialog
+"truncate.title" = "Truncate `%@`.`%@`?";
+"truncate.warning" = "This will delete ALL rows in the table. This action cannot be undone.";
+"truncate.confirm" = "I understand this operation cannot be undone.";
+"truncate.button" = "Truncate";
+"truncate.cancel" = "Cancel";
+
+// Delete session dialog
+"deleteSession.permanent" = "Delete Permanently";
+"deleteSession.cancel" = "Cancel";
+"deleteSession.subtitle" = "Session '%@' will be permanently removed from MacHeidi.";
 
 // Toolbar
 "toolbar.sessions" = "Sessions";

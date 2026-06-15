@@ -16,7 +16,7 @@ struct SidebarView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
                         .font(.caption)
-                    TextField("Filter tables…", text: $searchText)
+                    TextField("", text: $searchText, prompt: Text(L("sidebar.filterTables")))
                         .textFieldStyle(.plain)
                         .font(.caption)
                     if !searchText.isEmpty {
@@ -36,7 +36,7 @@ struct SidebarView: View {
             }
 
             List {
-                Section("Sessions") {
+                Section(header: Text(L("sidebar.sessions"))) {
                     ForEach(env.sessions) { session in
                         SessionRow(session: session, onEditSession: onEditSession)
                     }
@@ -44,7 +44,7 @@ struct SidebarView: View {
                 if env.activeSession != nil && env.connectionState == .connected {
                     if searchText.isEmpty {
                         // 正常模式：按数据库分组展开
-                        Section("Databases") {
+                        Section(header: Text(L("sidebar.databases"))) {
                             ForEach(env.databases, id: \.self) { db in
                                 DatabaseNode(name: db)
                             }
@@ -54,7 +54,7 @@ struct SidebarView: View {
                         Section("Search Results") {
                             let hits = filteredHits(query: searchText)
                             if hits.isEmpty {
-                                Text("No matches")
+                                Text(L("sidebar.noMatches"))
                                     .foregroundStyle(.tertiary)
                                     .font(.caption)
                             } else {
@@ -159,10 +159,10 @@ private struct SearchHitRow: View {
                 : .table(database: database, table: table.name)
         }
         .contextMenu {
-            Button("Open Data") {
+            Button(L("menu.openData")) {
                 env.openDataTab(database: database, table: table.name)
             }
-            Button("Show Table Info") {
+            Button(L("menu.showTableInfo")) {
                 env.openTableInfoTab(database: database, table: table.name)
             }
         }
@@ -211,30 +211,37 @@ private struct SessionRow: View {
             Task { await env.openSession(session) }
         }
         .contextMenu {
-            Button("Open") {
+            Button(L("menu.openSession")) {
                 Task { await env.openSession(session) }
             }
-            Button("Edit Session…") {
+            Button(L("menu.editSession")) {
                 onEditSession()
             }
-            Button("Duplicate") {
+            Button(L("menu.duplicateSession")) {
                 try? env.duplicateSession(session.id)
             }
             Divider()
-            Button("Delete", role: .destructive) {
+            Button(L("menu.deleteSession"), role: .destructive) {
                 showDeleteConfirmation = true
             }
             .disabled(isActive)
         }
-        .confirmationDialog("Delete Session?", isPresented: $showDeleteConfirmation) {
-            Button("Delete Permanently", role: .destructive) {
+        .confirmationDialog(Text(L("session.deleteConfirm")),
+                            isPresented: $showDeleteConfirmation) {
+            Button(role: .destructive) {
                 try? env.deleteSession(session.id)
+            } label: {
+                Text(L("deleteSession.permanent"))
             }
-            Button("Cancel", role: .cancel) {
+            Button(role: .cancel) {
                 showDeleteConfirmation = false
+            } label: {
+                Text(L("deleteSession.cancel"))
             }
         } message: {
-            Text("Session '\(session.name)' will be permanently removed from MacHeidi.")
+            Text(String(format: NSLocalizedString(
+                "deleteSession.subtitle", bundle: .module, comment: ""
+            ), session.name))
         }
     }
 
@@ -275,7 +282,7 @@ private struct DatabaseNode: View {
                     TableNode(database: name, table: t)
                 }
             } else {
-                Text("Loading…")
+                Text(L("sidebar.loading"))
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
@@ -360,25 +367,25 @@ private struct TableNode: View {
             }
         }
         .contextMenu {
-            Button("Open Data") {
+            Button(L("menu.openData")) {
                 env.openDataTab(database: database, table: table.name)
             }
-            Button("Show Table Info") {
+            Button(L("menu.showTableInfo")) {
                 env.openTableInfoTab(database: database, table: table.name)
             }
             Divider()
-            Button("Copy Table Name") {
+            Button(L("menu.copyTableName")) {
                 copyTableName()
             }
-            Button("Copy CREATE Statement") {
+            Button(L("menu.copyCreate")) {
                 Task { await copyCreateStatement() }
             }
             if table.kind == .table {
                 Divider()
-                Button("Import CSV…") {
+                Button(L("menu.importCSV")) {
                     Task { await prepareCSVImport() }
                 }
-                Button("Truncate Table…", role: .destructive) {
+                Button(L("menu.truncateTable"), role: .destructive) {
                     showTruncateSheet = true
                 }
             }
@@ -469,15 +476,17 @@ private struct TruncateTableSheet: View {
                     .font(.title)
                     .foregroundStyle(.orange)
                 VStack(alignment: .leading) {
-                    Text("Truncate `\(database)`.`\(table)`?")
+                    Text(String(format: NSLocalizedString(
+                        "truncate.title", bundle: .module, comment: ""
+                    ), database, table))
                         .font(.headline)
-                    Text("This will delete ALL rows in the table. This action cannot be undone.")
+                    Text(L("truncate.warning"))
                         .foregroundStyle(.secondary)
                 }
             }
 
             Toggle(isOn: $confirmChecked) {
-                Text("I understand this operation cannot be undone.")
+                Text(L("truncate.confirm"))
             }
 
             if let error {
@@ -489,12 +498,12 @@ private struct TruncateTableSheet: View {
 
             HStack {
                 Spacer()
-                Button("Cancel") {
+                Button(L("truncate.cancel")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
 
-                Button("Truncate") {
+                Button(L("truncate.button")) {
                     Task { await performTruncate() }
                 }
                 .keyboardShortcut(.defaultAction)
