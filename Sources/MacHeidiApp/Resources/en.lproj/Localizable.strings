@@ -23,6 +23,7 @@
 "menu.copyCreate" = "Copy CREATE Statement";
 "menu.importCSV" = "Import CSV…";
 "menu.truncateTable" = "Truncate Table…";
+"menu.importCSVNewTable" = "Import CSV as New Table…";
 
 // Sidebar - Session context menu
 "menu.openSession" = "Open";
@@ -109,6 +110,14 @@
 "session.port" = "Port";
 "session.defaultDb" = "Default Database(s)";
 "session.useSSL" = "Use SSL";
+"session.colorTag" = "Color tag";
+"color.none" = "None";
+"color.blue" = "Blue (dev)";
+"color.green" = "Green (staging)";
+"color.orange" = "Orange (pre-prod)";
+"color.red" = "Red (production)";
+"color.purple" = "Purple";
+"color.gray" = "Gray";
 "session.comment" = "Comment";
 "session.test" = "Test";
 "session.open" = "Open";
@@ -301,6 +310,31 @@
 // CSV Import
 "csv.title" = "Import CSV → `%@`.`%@`";
 "csv.pickFile" = "Choose file…";
+
+// CSV → new table wizard
+"csvNew.title" = "Import CSV to new table · `%@`";
+"csvNew.step1" = "1. Choose CSV file";
+"csvNew.step2" = "2. Name + types";
+"csvNew.step3" = "3. Preview CREATE TABLE";
+"csvNew.tableName" = "New table name";
+"csvNew.tableNamePh" = "e.g. imported_users";
+"csvNew.separator" = "Separator";
+"csvNew.firstHeader" = "First row is header";
+"csvNew.previewLabel" = "Data preview (first 5 rows)";
+"csvNew.inferredCols" = "Inferred columns";
+"csvNew.colName" = "Column";
+"csvNew.colType" = "Type";
+"csvNew.colNullable" = "Nullable";
+"csvNew.createSQL" = "CREATE TABLE preview";
+"csvNew.createAndImport" = "Create & Import";
+"csvNew.creating" = "Creating table…";
+"csvNew.importing" = "Importing… %d / %d";
+"csvNew.success" = "✅ Table created and %d rows imported";
+"csvNew.failedCreate" = "Create failed: %@";
+"csvNew.failedImport" = "Import failed (table created): %@";
+"csvNew.cancel" = "Cancel";
+"csvNew.close" = "Close";
+"csvNew.empty" = "Choose a CSV file first";
 "csv.fileLabel" = "File";
 "csv.separator" = "Separator";
 "csv.firstHeader" = "First row is header";

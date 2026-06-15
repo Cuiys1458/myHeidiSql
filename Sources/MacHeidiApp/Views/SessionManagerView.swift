@@ -335,6 +335,15 @@ private struct SessionForm: View {
                             .padding(.top, 4)
                         Spacer()
                     }
+                    // 颜色标签
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L("session.colorTag")).font(.caption).foregroundStyle(.secondary)
+                        HStack(spacing: 6) {
+                            ForEach(SessionColorTag.allCases, id: \.self) { tag in
+                                colorTagSwatch(tag: tag)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -427,6 +436,38 @@ private struct SessionForm: View {
             get: { draft.sshConfig?.privateKeyPath ?? "" },
             set: { draft.sshConfig?.privateKeyPath = $0 }
         )
+    }
+
+    @ViewBuilder
+    private func colorTagSwatch(tag: SessionColorTag) -> some View {
+        let isSelected = draft.colorTag == tag
+        let fillColor = SessionColorPalette.swiftColor(for: tag) ?? Color.secondary.opacity(0.2)
+        Button {
+            draft.colorTag = tag
+        } label: {
+            ZStack {
+                if tag == .none {
+                    // none 用空心圈 + 斜杠
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.secondary.opacity(0.4), lineWidth: 1)
+                        .frame(width: 24, height: 18)
+                    Image(systemName: "nosign")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                } else {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(fillColor)
+                        .frame(width: 24, height: 18)
+                }
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.accentColor, lineWidth: 2)
+                        .frame(width: 26, height: 20)
+                }
+            }
+            .help(SessionColorPalette.label(for: tag))
+        }
+        .buttonStyle(.plain)
     }
 }
 

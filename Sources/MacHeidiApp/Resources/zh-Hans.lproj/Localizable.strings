@@ -23,6 +23,7 @@
 "menu.copyCreate" = "复制 CREATE 语句";
 "menu.importCSV" = "导入 CSV…";
 "menu.truncateTable" = "清空表…";
+"menu.importCSVNewTable" = "从 CSV 导入到新表…";
 
 // Sidebar - 会话右键菜单
 "menu.openSession" = "打开";
@@ -109,6 +110,14 @@
 "session.port" = "端口";
 "session.defaultDb" = "默认数据库";
 "session.useSSL" = "使用 SSL";
+"session.colorTag" = "颜色标签";
+"color.none" = "无";
+"color.blue" = "蓝（开发）";
+"color.green" = "绿（测试）";
+"color.orange" = "橙（预发）";
+"color.red" = "红（生产）";
+"color.purple" = "紫";
+"color.gray" = "灰";
 "session.comment" = "备注";
 "session.test" = "测试连接";
 "session.open" = "打开";
@@ -329,6 +338,31 @@
 // CSV Import
 "csv.title" = "导入 CSV → `%@`.`%@`";
 "csv.pickFile" = "选择文件…";
+
+// CSV → 新表向导
+"csvNew.title" = "导入 CSV 到新表 · `%@`";
+"csvNew.step1" = "1. 选择 CSV 文件";
+"csvNew.step2" = "2. 表名 + 类型推断";
+"csvNew.step3" = "3. 预览 CREATE TABLE";
+"csvNew.tableName" = "新表名";
+"csvNew.tableNamePh" = "例如 imported_users";
+"csvNew.separator" = "分隔符";
+"csvNew.firstHeader" = "首行是表头";
+"csvNew.previewLabel" = "数据预览（前 5 行）";
+"csvNew.inferredCols" = "推导出的列";
+"csvNew.colName" = "列名";
+"csvNew.colType" = "类型";
+"csvNew.colNullable" = "可空";
+"csvNew.createSQL" = "CREATE TABLE 预览";
+"csvNew.createAndImport" = "建表并导入";
+"csvNew.creating" = "建表中…";
+"csvNew.importing" = "导入中… %d / %d";
+"csvNew.success" = "✅ 已建表并导入 %d 行";
+"csvNew.failedCreate" = "建表失败：%@";
+"csvNew.failedImport" = "导入失败（表已建好）：%@";
+"csvNew.cancel" = "取消";
+"csvNew.close" = "关闭";
+"csvNew.empty" = "请先选择 CSV 文件";
 "csv.fileLabel" = "文件";
 "csv.separator" = "分隔符";
 "csv.firstHeader" = "首行是表头";

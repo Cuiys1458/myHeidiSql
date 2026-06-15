@@ -196,6 +196,12 @@ private struct SessionRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
+            // 颜色标签条（左侧 3px 竖条）+ 状态圆点
+            if let tagColor = colorTagSwiftUIColor {
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(tagColor)
+                    .frame(width: 3, height: 14)
+            }
             Circle()
                 .fill(indicator)
                 .frame(width: 8, height: 8)
@@ -256,11 +262,17 @@ private struct SessionRow: View {
         case .idle:       return .gray
         }
     }
+
+    /// 颜色标签 → SwiftUI Color；nil = 不显示标签条
+    fileprivate var colorTagSwiftUIColor: Color? {
+        SessionColorPalette.swiftColor(for: session.colorTag)
+    }
 }
 
 private struct DatabaseNode: View {
     @Environment(AppEnvironment.self) private var env
     let name: String
+    @State private var showCSVImportNew: Bool = false
 
     private var isSelected: Bool {
         if case .database(let n) = env.selectedNode, n == name { return true }
@@ -306,6 +318,16 @@ private struct DatabaseNode: View {
                         Task { await env.expandDatabase(name) }
                     }
                 }
+                .contextMenu {
+                    Button(L("menu.importCSVNewTable")) {
+                        showCSVImportNew = true
+                    }
+                }
+        }
+        .sheet(isPresented: $showCSVImportNew) {
+            CSVImportNewTableView(database: name,
+                                   isPresented: $showCSVImportNew)
+                .frame(minWidth: 760, minHeight: 600)
         }
     }
 }

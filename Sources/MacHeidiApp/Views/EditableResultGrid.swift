@@ -619,6 +619,17 @@ private struct NativeGridRepresentable: NSViewRepresentable {
         }
 
         // MARK: view-based delegate
+        // 自定义 row view → 行 hover 高亮
+        func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+            let id = NSUserInterfaceItemIdentifier("HoverRow")
+            let view = (tableView.makeView(withIdentifier: id, owner: nil) as? HoverableRowView)
+                ?? HoverableRowView()
+            view.identifier = id
+            view.parent = tableView as? CopyableTableView
+            view.rowIndex = row
+            return view
+        }
+
         func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?,
                        row: Int) -> NSView? {
             guard let tc = tableColumn,
@@ -929,6 +940,52 @@ extension NativeGridRepresentable {
 
 /// 支持 Cmd+C 复制选中行（TSV 格式，含 header）的 NSTableView 子类。
 private final class CopyableTableView: NSTableView {
+
+    /// 鼠标悬停的行索引（-1 = 没在任何行上）。改动时刷新前后两行。
+    private(set) var hoveredRow: Int = -1 {
+        didSet {
+            guard hoveredRow != oldValue else { return }
+            var rowsToReload = IndexSet()
+            if oldValue >= 0 && oldValue < numberOfRows {
+                rowsToReload.insert(oldValue)
+            }
+            if hoveredRow >= 0 && hoveredRow < numberOfRows {
+                rowsToReload.insert(hoveredRow)
+            }
+            if !rowsToReload.isEmpty {
+                let allCols = IndexSet(integersIn: 0..<numberOfColumns)
+                reloadData(forRowIndexes: rowsToReload, columnIndexes: allCols)
+            }
+        }
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        // 移除旧的，避免重复
+        for area in trackingAreas where area.owner === self {
+            removeTrackingArea(area)
+        }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        let loc = convert(event.locationInWindow, from: nil)
+        let row = self.row(at: loc)
+        hoveredRow = row
+        super.mouseMoved(with: event)
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        hoveredRow = -1
+        super.mouseExited(with: event)
+    }
+
     override func keyDown(with event: NSEvent) {
         // Cmd+C
         if event.modifierFlags.contains(.command),
@@ -968,5 +1025,19 @@ private final class CopyableTableView: NSTableView {
         pb.clearContents()
         pb.setString(lines.joined(separator: "\n"), forType: .string)
         _ = ds  // silence unused
+    }
+}
+
+/// 行 hover 高亮 row view —— 鼠标悬停时画浅色背景。
+private final class HoverableRowView: NSTableRowView {
+    weak var parent: CopyableTableView?
+    var rowIndex: Int = -1
+
+    override func drawBackground(in dirtyRect: NSRect) {
+        super.drawBackground(in: dirtyRect)
+        guard let parent, parent.hoveredRow == rowIndex else { return }
+        // 跟随系统主题：选中色 12% alpha
+        NSColor.controlAccentColor.withAlphaComponent(0.12).setFill()
+        bounds.fill()
     }
 }

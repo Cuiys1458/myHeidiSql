@@ -1,5 +1,10 @@
 import Foundation
 
+/// 会话颜色标签 —— 用于侧栏色块和 Data Tab 边框，防止误连生产。
+public enum SessionColorTag: String, Codable, Equatable, Sendable, CaseIterable {
+    case none, blue, green, orange, red, purple, gray
+}
+
 /// 一个 MySQL 连接配置 + 用户起的名字。未连接时也存在（PRD §5.1.2）。
 ///
 /// **不**包含密码字段 —— 密码只能通过 `KeychainStore` 读写，UUID 作为 account。
@@ -13,6 +18,7 @@ public struct SessionConfig: Codable, Equatable, Sendable, Identifiable {
     public var defaultDatabases: String
     public var useSSL: Bool
     public var comment: String
+    public var colorTag: SessionColorTag
 
     /// SSH 隧道配置（PRD §11 v0.2）。空 → 直连。
     public var sshConfig: SSHTunnelConfig?
@@ -33,6 +39,7 @@ public struct SessionConfig: Codable, Equatable, Sendable, Identifiable {
         defaultDatabases: String = "",
         useSSL: Bool = false,
         comment: String = "",
+        colorTag: SessionColorTag = .none,
         sshConfig: SSHTunnelConfig? = nil,
         createdAt: Date = Date(),
         lastUsedAt: Date? = nil
@@ -46,6 +53,7 @@ public struct SessionConfig: Codable, Equatable, Sendable, Identifiable {
         self.defaultDatabases = defaultDatabases
         self.useSSL = useSSL
         self.comment = comment
+        self.colorTag = colorTag
         self.sshConfig = sshConfig
         self.createdAt = createdAt
         self.lastUsedAt = lastUsedAt
@@ -54,7 +62,7 @@ public struct SessionConfig: Codable, Equatable, Sendable, Identifiable {
     /// 故意省略 `password` —— 这是 PRD §10 的安全要求由类型系统保证。
     private enum CodingKeys: String, CodingKey {
         case id, name, hostname, port, user
-        case defaultDatabases, useSSL, comment
+        case defaultDatabases, useSSL, comment, colorTag
         case sshConfig
         case createdAt, lastUsedAt
     }
@@ -69,6 +77,7 @@ public struct SessionConfig: Codable, Equatable, Sendable, Identifiable {
         self.defaultDatabases = try c.decodeIfPresent(String.self, forKey: .defaultDatabases) ?? ""
         self.useSSL = try c.decodeIfPresent(Bool.self, forKey: .useSSL) ?? false
         self.comment = try c.decodeIfPresent(String.self, forKey: .comment) ?? ""
+        self.colorTag = try c.decodeIfPresent(SessionColorTag.self, forKey: .colorTag) ?? .none
         self.sshConfig = try c.decodeIfPresent(SSHTunnelConfig.self, forKey: .sshConfig)
         self.createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
         self.lastUsedAt = try c.decodeIfPresent(Date.self, forKey: .lastUsedAt)
