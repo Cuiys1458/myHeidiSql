@@ -32,8 +32,28 @@ struct EditTableSchemaView: View {
     @State private var idxColumns: Set<String> = []
     @State private var idxUnique: Bool = false
 
+    // Foreign Key 编辑草稿
+    @State private var fks: [AppEnvironment.ForeignKeyEntry] = []
+    @State private var fkDraftMode: FKMode = .none
+    @State private var fkName: String = ""
+    @State private var fkColumns: Set<String> = []
+    @State private var fkRefDatabase: String = ""
+    @State private var fkRefTable: String = ""
+    @State private var fkRefColumns: String = ""
+    @State private var fkOnDelete: DDLGenerator.ForeignKeySpec.ReferentialAction = .noAction
+    @State private var fkOnUpdate: DDLGenerator.ForeignKeySpec.ReferentialAction = .noAction
+
+    // Table Options 编辑草稿
+    @State private var optDraftOpen: Bool = false
+    @State private var optEngine: String = ""
+    @State private var optCharset: String = ""
+    @State private var optCollation: String = ""
+    @State private var optComment: String = ""
+    @State private var optNewName: String = ""
+
     enum Mode: Equatable { case none, add, modify, rename }
     enum IndexMode: Equatable { case none, add }
+    enum FKMode: Equatable { case none, add }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -48,6 +68,9 @@ struct EditTableSchemaView: View {
                         editorSection(schema)
                         indexesSection(schema)
                         indexEditorSection(schema)
+                        foreignKeysSection(schema)
+                        fkEditorSection(schema)
+                        tableOptionsSection(schema)
                         if let sql = pendingSQL {
                             previewSection(sql)
                         }
@@ -399,6 +422,323 @@ struct EditTableSchemaView: View {
         }
     }
 
+    // MARK: Foreign Keys section
+
+    @ViewBuilder
+    private func foreignKeysSection(_ s: TableSchema) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Foreign Keys").font(.headline)
+                Text("(\(fks.count))").foregroundStyle(.secondary)
+                Spacer()
+                Button {
+                    fkDraftMode = .add
+                    fkName = ""
+                    fkColumns = []
+                    fkRefDatabase = ""
+                    fkRefTable = ""
+                    fkRefColumns = ""
+                    fkOnDelete = .noAction
+                    fkOnUpdate = .noAction
+                    pendingSQL = nil
+                } label: {
+                    Label("Add Foreign Key", systemImage: "link.badge.plus")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+            if fks.isEmpty {
+                Text("No foreign keys defined.")
+                    .foregroundStyle(.tertiary)
+                    .font(.caption)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 0) {
+                        th("Constraint", w: 200)
+                        th("Column", w: 160)
+                        th("References", w: 320)
+                        th("Actions", w: 120)
+                    }
+                    .padding(.vertical, 4)
+                    .background(Color(NSColor.controlBackgroundColor))
+                    Divider()
+                    // group by constraint name → 复合 FK 多列归一
+                    let grouped = Dictionary(grouping: fks, by: { $0.constraint })
+                    let names = grouped.keys.sorted()
+                    ForEach(Array(names.enumerated()), id: \.offset) { idx, name in
+                        let entries = grouped[name] ?? []
+                        let cols = entries.map(\.column).joined(separator: ", ")
+                        let refDb = entries.first?.refDatabase ?? ""
+                        let refTb = entries.first?.refTable ?? ""
+                        let refCols = entries.map(\.refColumn).joined(separator: ", ")
+                        let refLabel = refDb.isEmpty
+                            ? "`\(refTb)` (\(refCols))"
+                            : "`\(refDb)`.`\(refTb)` (\(refCols))"
+                        HStack(spacing: 0) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "link").foregroundStyle(.green).font(.caption2)
+                                Text(name).font(.callout.monospaced()).lineLimit(1)
+                                Spacer(minLength: 0)
+                            }
+                            .frame(width: 200, alignment: .leading)
+                            .padding(.horizontal, 8)
+                            Text(cols)
+                                .font(.caption.monospaced()).foregroundStyle(.secondary)
+                                .frame(width: 160, alignment: .leading)
+                                .padding(.horizontal, 8).lineLimit(1)
+                            Text(refLabel)
+                                .font(.caption.monospaced()).foregroundStyle(.secondary)
+                                .frame(width: 320, alignment: .leading)
+                                .padding(.horizontal, 8).lineLimit(1)
+                            Button("Drop", role: .destructive) {
+                                dropForeignKey(name: name)
+                            }
+                            .controlSize(.mini)
+                            .frame(width: 120, alignment: .leading)
+                            .padding(.horizontal, 8)
+                        }
+                        .padding(.vertical, 3)
+                        .background(idx % 2 != 0 ? Color.primary.opacity(0.04) : Color.clear)
+                    }
+                }
+                .background(Color(NSColor.textBackgroundColor))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func fkEditorSection(_ s: TableSchema) -> some View {
+        if fkDraftMode == .add {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Add Foreign Key").font(.headline)
+                    Spacer()
+                    Button("Cancel") { fkDraftMode = .none; pendingSQL = nil }
+                        .controlSize(.small)
+                }
+                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                    GridRow {
+                        Text("Constraint name").font(.caption)
+                        TextField("fk_<table>_<col>", text: $fkName)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 320)
+                    }
+                    GridRow {
+                        Text("Local columns").font(.caption)
+                        VStack(alignment: .leading, spacing: 2) {
+                            ForEach(s.columns, id: \.name) { c in
+                                Toggle(isOn: Binding(
+                                    get: { fkColumns.contains(c.name) },
+                                    set: { v in
+                                        if v { fkColumns.insert(c.name) }
+                                        else { fkColumns.remove(c.name) }
+                                    }
+                                )) {
+                                    Text(c.name).font(.callout.monospaced())
+                                }
+                                .toggleStyle(.checkbox)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    GridRow {
+                        Text("Ref database").font(.caption)
+                        TextField("(留空表示当前库)", text: $fkRefDatabase)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 320)
+                    }
+                    GridRow {
+                        Text("Ref table").font(.caption)
+                        TextField("users", text: $fkRefTable)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 320)
+                    }
+                    GridRow {
+                        Text("Ref columns").font(.caption)
+                        TextField("id（多列用逗号分隔）", text: $fkRefColumns)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 320)
+                    }
+                    GridRow {
+                        Text("ON DELETE").font(.caption)
+                        Picker("", selection: $fkOnDelete) {
+                            ForEach(DDLGenerator.ForeignKeySpec.ReferentialAction.allCases,
+                                    id: \.self) { Text($0.rawValue).tag($0) }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 200)
+                    }
+                    GridRow {
+                        Text("ON UPDATE").font(.caption)
+                        Picker("", selection: $fkOnUpdate) {
+                            ForEach(DDLGenerator.ForeignKeySpec.ReferentialAction.allCases,
+                                    id: \.self) { Text($0.rawValue).tag($0) }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 200)
+                    }
+                }
+                Button {
+                    addForeignKey()
+                } label: {
+                    Label("Generate SQL", systemImage: "wand.and.stars")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+            .padding(12)
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+    }
+
+    private func addForeignKey() {
+        do {
+            let cols = Array(fkColumns).sorted()
+            let refCols = fkRefColumns
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+            let spec = DDLGenerator.ForeignKeySpec(
+                name: fkName,
+                columns: cols,
+                refDatabase: fkRefDatabase.isEmpty ? nil : fkRefDatabase,
+                refTable: fkRefTable,
+                refColumns: refCols,
+                onDelete: fkOnDelete,
+                onUpdate: fkOnUpdate
+            )
+            let sql = try DDLGenerator.addForeignKey(
+                database: database, table: table, fk: spec
+            )
+            pendingSQL = sql
+            pendingWarnings = []
+            fkDraftMode = .none
+            actionError = nil
+        } catch {
+            actionError = String(describing: error)
+        }
+    }
+
+    private func dropForeignKey(name: String) {
+        do {
+            let sql = try DDLGenerator.dropForeignKey(
+                database: database, table: table, name: name
+            )
+            pendingSQL = sql
+            pendingWarnings = []
+            actionError = nil
+        } catch {
+            actionError = String(describing: error)
+        }
+    }
+
+    // MARK: Table Options section
+
+    @ViewBuilder
+    private func tableOptionsSection(_ s: TableSchema) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Table Options").font(.headline)
+                Spacer()
+                Button {
+                    optDraftOpen.toggle()
+                    if optDraftOpen {
+                        optEngine = ""
+                        optCharset = ""
+                        optCollation = ""
+                        optComment = ""
+                        optNewName = ""
+                        pendingSQL = nil
+                    }
+                } label: {
+                    Label(optDraftOpen ? "Hide" : "Edit Options",
+                          systemImage: optDraftOpen ? "chevron.up" : "slider.horizontal.3")
+                }
+                .controlSize(.small)
+            }
+            if optDraftOpen {
+                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                    GridRow {
+                        Text("ENGINE").font(.caption)
+                        TextField("InnoDB / MyISAM", text: $optEngine)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 280)
+                    }
+                    GridRow {
+                        Text("DEFAULT CHARSET").font(.caption)
+                        TextField("utf8mb4", text: $optCharset)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 280)
+                    }
+                    GridRow {
+                        Text("COLLATE").font(.caption)
+                        TextField("utf8mb4_general_ci", text: $optCollation)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 280)
+                    }
+                    GridRow {
+                        Text("COMMENT").font(.caption)
+                        TextField("(留空不动)", text: $optComment)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 480)
+                    }
+                    GridRow {
+                        Text("Rename to").font(.caption)
+                        TextField("(留空不重命名)", text: $optNewName)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 280)
+                    }
+                }
+                HStack {
+                    Button {
+                        applyTableOptions()
+                    } label: {
+                        Label("Generate SQL", systemImage: "wand.and.stars")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    Text("非空字段才会写入 SQL")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.top, 4)
+            }
+        }
+    }
+
+    private func applyTableOptions() {
+        do {
+            // 优先 RENAME（独立语句）
+            if !optNewName.trimmingCharacters(in: .whitespaces).isEmpty {
+                let sql = try DDLGenerator.renameTable(
+                    database: database, table: table, newName: optNewName
+                )
+                pendingSQL = sql
+                pendingWarnings = []
+                actionError = nil
+                return
+            }
+            let sql = try DDLGenerator.setTableOptions(
+                database: database, table: table,
+                engine: optEngine.isEmpty ? nil : optEngine,
+                charset: optCharset.isEmpty ? nil : optCharset,
+                collation: optCollation.isEmpty ? nil : optCollation,
+                comment: optComment.isEmpty ? nil : optComment
+            )
+            guard let sql else {
+                actionError = "请至少填一个字段"
+                return
+            }
+            pendingSQL = sql
+            pendingWarnings = []
+            actionError = nil
+        } catch {
+            actionError = String(describing: error)
+        }
+    }
+
     @ViewBuilder
     private func previewSection(_ sql: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -520,6 +860,7 @@ struct EditTableSchemaView: View {
         loading = true
         defer { loading = false }
         schema = await env.loadTableSchema(database: database, table: table)
+        fks = await env.loadForeignKeys(database: database, table: table)
     }
 
     private func execute() async {

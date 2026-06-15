@@ -1,12 +1,32 @@
 // MacHeidi UI 字符串 — 简体中文
+// SwiftUI 取用：Text(L("key"))；AppKit 取用：LS("key")。
+
+// App
 "app.name" = "MacHeidi";
-"sessions.title" = "会话";
-"databases.title" = "数据库";
+
+// Sidebar
+"sidebar.sessions" = "会话";
+"sidebar.databases" = "数据库";
+"sidebar.filterTables" = "筛选表名…";
+"sidebar.tables" = "表";
+"sidebar.views" = "视图";
+"sidebar.procedures" = "存储过程";
+"sidebar.functions" = "函数";
+"sidebar.triggers" = "触发器";
+
+// Toolbar
 "toolbar.sessions" = "会话";
 "toolbar.history" = "查询历史";
 "toolbar.refresh" = "刷新";
 "toolbar.newQuery" = "新建查询";
 "toolbar.disconnect" = "断开连接";
+
+// Welcome
+"welcome.title" = "暂无打开的会话";
+"welcome.subtitle" = "在侧栏双击会话即可连接，或打开会话管理器编辑。";
+"welcome.openManager" = "打开会话管理器";
+
+// Data tab
 "data.where" = "WHERE";
 "data.refresh" = "刷新";
 "data.export" = "导出";
@@ -14,13 +34,46 @@
 "data.discard" = "丢弃";
 "data.changesSaveAuto" = "修改自动保存";
 "data.noPK" = "无主键";
+"data.noPK.help" = "该表没有主键。";
 "data.connectionLost" = "连接已断开。";
 "data.reconnect" = "重新连接";
 "data.dismiss" = "关闭";
+"data.insertRow" = "插入行";
+"data.pageSize" = "每页行数";
+"data.copyAsInsert" = "复制为 INSERT 语句";
+"data.markDelete" = "标记删除";
+"data.unmarkDelete" = "取消删除标记";
+"data.discardInsert" = "丢弃此插入";
+"data.runQuery" = "运行查询以查看结果。";
+
+// Query tab
 "query.runAll" = "全部执行";
 "query.run" = "执行";
 "query.cancel" = "取消";
 "query.cancelling" = "正在取消…";
+"query.explain" = "EXPLAIN";
+"query.format" = "格式化";
+"query.openFile" = "打开 .sql…";
+"query.saveFile" = "保存 .sql";
+
+// Edit cell sheet
+"edit.title" = "编辑";
+"edit.setNull" = "设为 NULL";
+"edit.formatJSON" = "格式化 JSON";
+"edit.formatSQL" = "格式化 SQL";
+"edit.cancel" = "取消";
+"edit.save" = "保存";
+
+// JSON Editor
+"json.title" = "编辑 JSON";
+"json.format" = "格式化";
+"json.minify" = "压缩";
+"json.validate" = "校验";
+"json.valid" = "合法";
+"json.invalid" = "非法";
+"json.apply" = "应用";
+
+// Session manager
 "session.name" = "名称";
 "session.host" = "主机 / IP";
 "session.user" = "用户名";
@@ -32,7 +85,69 @@
 "session.test" = "测试连接";
 "session.open" = "打开";
 "session.close" = "关闭";
+"session.delete" = "删除";
+"session.duplicate" = "复制";
+"session.new" = "新建会话";
 "session.deleteConfirm" = "删除会话？";
+"session.deleteWarning" = "输入会话名以确认删除。";
+"session.connected" = "已连接 %@";
+"session.connecting" = "连接中…";
+"session.failed" = "连接失败";
+"session.sshTunnel" = "SSH 隧道（可选）";
+"session.enable" = "启用";
+
+// Table info
+"info.editStructure" = "编辑结构";
+"info.refresh" = "刷新";
+"info.status" = "状态";
+"info.engine" = "引擎";
+"info.rows" = "行数（估计）";
+"info.avgRowLength" = "平均行长";
+"info.dataLength" = "数据大小";
+"info.indexLength" = "索引大小";
+"info.collation" = "字符集";
+"info.created" = "创建时间";
+"info.updated" = "更新时间";
+"info.comment" = "备注";
+"info.columns" = "列";
+"info.indexes" = "索引";
+"info.foreignKeys" = "外键";
+"info.ddl" = "DDL";
+"info.copy" = "复制";
+
+// Edit structure (DDL)
+"ddl.title" = "编辑结构";
+"ddl.columns" = "列";
+"ddl.addColumn" = "添加列";
+"ddl.modifyColumn" = "修改列";
+"ddl.renameColumn" = "重命名列";
+"ddl.dropColumn" = "删除";
+"ddl.indexes" = "索引";
+"ddl.addIndex" = "添加索引";
+"ddl.foreignKeys" = "外键";
+"ddl.addForeignKey" = "添加外键";
+"ddl.tableOptions" = "表选项";
+"ddl.editOptions" = "编辑表选项";
+"ddl.hideOptions" = "收起";
+"ddl.generateSQL" = "生成 SQL";
+"ddl.preview" = "SQL 预览";
+"ddl.apply" = "应用";
+"ddl.close" = "关闭";
+
+// Common
 "common.cancel" = "取消";
 "common.delete" = "删除";
 "common.duplicate" = "复制";
+"common.ok" = "确定";
+"common.save" = "保存";
+"common.apply" = "应用";
+"common.copy" = "复制";
+"common.refresh" = "刷新";
+"common.add" = "添加";
+"common.drop" = "删除";
+"common.remove" = "移除";
+"common.close" = "关闭";
+"common.edit" = "编辑";
+"common.open" = "打开";
+"common.error" = "错误";
+"common.warning" = "警告";

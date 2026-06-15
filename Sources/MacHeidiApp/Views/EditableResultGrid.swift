@@ -417,6 +417,12 @@ private struct NativeGridRepresentable: NSViewRepresentable {
                                 keyEquivalent: "")
         unmark.target = coord
         menu.addItem(unmark)
+        menu.addItem(.separator())
+        let copyInsert = NSMenuItem(title: "Copy as INSERT",
+                                    action: #selector(Coordinator.copyAsInsert(_:)),
+                                    keyEquivalent: "")
+        copyInsert.target = coord
+        menu.addItem(copyInsert)
         return menu
     }
 
@@ -568,6 +574,41 @@ private struct NativeGridRepresentable: NSViewRepresentable {
                 }
             }
             table.reloadData()
+        }
+
+        /// 把选中行（多选支持）生成可重放的 INSERT 语句写到剪贴板。
+        /// 支持当前 dirty / pending insert / 普通行；列名按 schema 顺序，值走 SQLGenerator.literal。
+        @objc func copyAsInsert(_ sender: AnyObject?) {
+            guard let table = tableView,
+                  let cols = parent.vm.resultSet?.columns,
+                  !cols.isEmpty else { return }
+            let sorted = parent.vm.sortedRowsWithOrigIdx()
+            let visibleRows = table.selectedRowIndexes.isEmpty
+                ? [table.clickedRow].filter { $0 >= 0 }
+                : Array(table.selectedRowIndexes)
+            let rowsToCopy: [[CellValue]] = visibleRows.compactMap { vr in
+                guard vr < sorted.count else { return nil }
+                let origRow = sorted[vr].origIdx
+                // 取最新值（含 pending edit），没改就用原值
+                return cols.enumerated().map { (idx, col) in
+                    parent.vm.newValue(rowIdx: origRow, column: col.name)
+                        ?? sorted[vr].row[idx]
+                }
+            }
+            guard !rowsToCopy.isEmpty else { return }
+            let qDb = (try? SQLIdentifier.quote(parent.vm.database)) ?? parent.vm.database
+            let qTb = (try? SQLIdentifier.quote(parent.vm.table)) ?? parent.vm.table
+            let qCols = cols.compactMap {
+                try? SQLIdentifier.quote($0.name)
+            }.joined(separator: ", ")
+            let lines = rowsToCopy.map { row in
+                let vals = row.map { SQLGenerator.literal($0) }.joined(separator: ", ")
+                return "INSERT INTO \(qDb).\(qTb) (\(qCols)) VALUES (\(vals));"
+            }
+            let payload = lines.joined(separator: "\n")
+            let pb = NSPasteboard.general
+            pb.clearContents()
+            pb.setString(payload, forType: .string)
         }
 
         // MARK: column resize → 持久化

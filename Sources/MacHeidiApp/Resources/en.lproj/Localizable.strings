@@ -1,12 +1,32 @@
 // MacHeidi UI strings — English
+// 完整字符串清单。SwiftUI 取用：Text(L("key"))；AppKit 取用：LS("key")。
+
+// App
 "app.name" = "MacHeidi";
-"sessions.title" = "Sessions";
-"databases.title" = "Databases";
+
+// Sidebar
+"sidebar.sessions" = "Sessions";
+"sidebar.databases" = "Databases";
+"sidebar.filterTables" = "Filter tables…";
+"sidebar.tables" = "Tables";
+"sidebar.views" = "Views";
+"sidebar.procedures" = "Procedures";
+"sidebar.functions" = "Functions";
+"sidebar.triggers" = "Triggers";
+
+// Toolbar
 "toolbar.sessions" = "Sessions";
 "toolbar.history" = "History";
 "toolbar.refresh" = "Refresh";
 "toolbar.newQuery" = "New Query";
 "toolbar.disconnect" = "Disconnect";
+
+// Welcome
+"welcome.title" = "No session open";
+"welcome.subtitle" = "Double-click a session in the sidebar to connect, or open the manager to edit.";
+"welcome.openManager" = "Open Session Manager";
+
+// Data tab
 "data.where" = "WHERE";
 "data.refresh" = "Refresh";
 "data.export" = "Export";
@@ -14,13 +34,46 @@
 "data.discard" = "Discard";
 "data.changesSaveAuto" = "Changes save automatically";
 "data.noPK" = "No PK";
+"data.noPK.help" = "This table has no primary key.";
 "data.connectionLost" = "Connection lost.";
 "data.reconnect" = "Reconnect";
 "data.dismiss" = "Dismiss";
+"data.insertRow" = "Insert Row";
+"data.pageSize" = "Page size";
+"data.copyAsInsert" = "Copy as INSERT";
+"data.markDelete" = "Mark for Delete";
+"data.unmarkDelete" = "Unmark Delete";
+"data.discardInsert" = "Discard This Insert";
+"data.runQuery" = "Run a query to see results here.";
+
+// Query tab
 "query.runAll" = "Run All";
 "query.run" = "Run";
 "query.cancel" = "Cancel";
 "query.cancelling" = "Cancelling query…";
+"query.explain" = "Explain";
+"query.format" = "Format";
+"query.openFile" = "Open .sql…";
+"query.saveFile" = "Save .sql";
+
+// Edit cell sheet
+"edit.title" = "Edit";
+"edit.setNull" = "Set NULL";
+"edit.formatJSON" = "Format JSON";
+"edit.formatSQL" = "Format SQL";
+"edit.cancel" = "Cancel";
+"edit.save" = "Save";
+
+// JSON Editor
+"json.title" = "Edit JSON";
+"json.format" = "Format";
+"json.minify" = "Minify";
+"json.validate" = "Validate";
+"json.valid" = "Valid";
+"json.invalid" = "Invalid";
+"json.apply" = "Apply";
+
+// Session manager
 "session.name" = "Name";
 "session.host" = "Hostname / IP";
 "session.user" = "User";
@@ -32,7 +85,69 @@
 "session.test" = "Test";
 "session.open" = "Open";
 "session.close" = "Close";
+"session.delete" = "Delete";
+"session.duplicate" = "Duplicate";
+"session.new" = "New Session";
 "session.deleteConfirm" = "Delete Session?";
+"session.deleteWarning" = "Type the session name to confirm deletion.";
+"session.connected" = "Connected to %@";
+"session.connecting" = "Connecting…";
+"session.failed" = "Connection failed";
+"session.sshTunnel" = "SSH Tunnel (optional)";
+"session.enable" = "Enable";
+
+// Table info
+"info.editStructure" = "Edit Structure";
+"info.refresh" = "Refresh";
+"info.status" = "Status";
+"info.engine" = "Engine";
+"info.rows" = "Rows (estimate)";
+"info.avgRowLength" = "Avg Row Length";
+"info.dataLength" = "Data Length";
+"info.indexLength" = "Index Length";
+"info.collation" = "Collation";
+"info.created" = "Created";
+"info.updated" = "Updated";
+"info.comment" = "Comment";
+"info.columns" = "Columns";
+"info.indexes" = "Indexes";
+"info.foreignKeys" = "Foreign Keys";
+"info.ddl" = "DDL";
+"info.copy" = "Copy";
+
+// Edit structure (DDL)
+"ddl.title" = "Edit Structure";
+"ddl.columns" = "Columns";
+"ddl.addColumn" = "Add Column";
+"ddl.modifyColumn" = "Modify Column";
+"ddl.renameColumn" = "Rename Column";
+"ddl.dropColumn" = "Drop";
+"ddl.indexes" = "Indexes";
+"ddl.addIndex" = "Add Index";
+"ddl.foreignKeys" = "Foreign Keys";
+"ddl.addForeignKey" = "Add Foreign Key";
+"ddl.tableOptions" = "Table Options";
+"ddl.editOptions" = "Edit Options";
+"ddl.hideOptions" = "Hide";
+"ddl.generateSQL" = "Generate SQL";
+"ddl.preview" = "SQL Preview";
+"ddl.apply" = "Apply";
+"ddl.close" = "Close";
+
+// Common
 "common.cancel" = "Cancel";
 "common.delete" = "Delete";
 "common.duplicate" = "Duplicate";
+"common.ok" = "OK";
+"common.save" = "Save";
+"common.apply" = "Apply";
+"common.copy" = "Copy";
+"common.refresh" = "Refresh";
+"common.add" = "Add";
+"common.drop" = "Drop";
+"common.remove" = "Remove";
+"common.close" = "Close";
+"common.edit" = "Edit";
+"common.open" = "Open";
+"common.error" = "Error";
+"common.warning" = "Warning";
