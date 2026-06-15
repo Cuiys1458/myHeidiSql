@@ -14,11 +14,20 @@ import Foundation
 ///
 /// 列名清洗：去除前后空白；非法字符（空格、横杠等）替换为下划线；
 /// 与 MySQL 关键字冲突时反引号兜底（由 SQLIdentifier.quote 处理）。
+///
+/// 主键策略：
+/// - CSV 已含 `id` 列（不区分大小写）→ 把它设为 PRIMARY KEY（NOT NULL；
+///   值看着是整型 → BIGINT；否则按推导出的类型）；不再注入隐式 id 列
+/// - CSV 不含 id → 注入 `id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY`
 public enum CSVTableInferrer {
 
     public struct Spec: Equatable {
         public let columns: [ColumnSpec]
         public let createSQL: String
+        /// CSV 自己提供 id 列 → 该列名（清洗后）；否则 nil 表示注入了隐式 id。
+        public let primaryKeyColumn: String?
+        /// PRIMARY KEY 是不是 AUTO_INCREMENT BIGINT（注入 id 时为 true）
+        public let pkIsAutoIncrement: Bool
     }
 
     public struct ColumnSpec: Equatable {
@@ -47,21 +56,47 @@ public enum CSVTableInferrer {
                 nullable: nullable
             )
         }
+
+        // 探测：CSV 是不是已经带了 id 列？大小写不敏感
+        let existingIdIndex = cols.firstIndex { $0.cleanName.lowercased() == "id" }
+
         let qualified = try SQLIdentifier.qualified(database: database, table: table)
         var lines: [String] = []
-        lines.append("`id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY")
-        for c in cols {
-            let qc = try SQLIdentifier.quote(c.cleanName)
-            let nullClause = c.nullable ? "NULL" : "NOT NULL"
-            lines.append("\(qc) \(c.mysqlType) \(nullClause)")
+        let pkColumn: String?
+        let pkAuto: Bool
+
+        if let idx = existingIdIndex {
+            // 已有 id：把它作为 PRIMARY KEY，强制 NOT NULL（PK 必须非空）
+            let idCol = cols[idx]
+            let qc = try SQLIdentifier.quote(idCol.cleanName)
+            lines.append("\(qc) \(idCol.mysqlType) NOT NULL PRIMARY KEY")
+            for (i, c) in cols.enumerated() where i != idx {
+                let qc = try SQLIdentifier.quote(c.cleanName)
+                let nullClause = c.nullable ? "NULL" : "NOT NULL"
+                lines.append("\(qc) \(c.mysqlType) \(nullClause)")
+            }
+            pkColumn = idCol.cleanName
+            pkAuto = false
+        } else {
+            // 没有 id：注入隐式 BIGINT AUTO_INCREMENT 作为 PRIMARY KEY
+            lines.append("`id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY")
+            for c in cols {
+                let qc = try SQLIdentifier.quote(c.cleanName)
+                let nullClause = c.nullable ? "NULL" : "NOT NULL"
+                lines.append("\(qc) \(c.mysqlType) \(nullClause)")
+            }
+            pkColumn = nil
+            pkAuto = true
         }
+
         let body = lines.joined(separator: ",\n  ")
         let sql = """
         CREATE TABLE \(qualified) (
           \(body)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """
-        return Spec(columns: cols, createSQL: sql)
+        return Spec(columns: cols, createSQL: sql,
+                    primaryKeyColumn: pkColumn, pkIsAutoIncrement: pkAuto)
     }
 
     // MARK: 类型推断

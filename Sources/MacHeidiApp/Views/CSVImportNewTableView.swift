@@ -281,18 +281,36 @@ struct CSVImportNewTableView: View {
         }
     }
 
-    /// 用户改过 type / nullable 后重新拼 SQL（spec.createSQL 是初始值）
+    /// 用户改过 type / nullable 后重新拼 SQL（spec.createSQL 是初始值）。
+    /// 主键策略与 `CSVTableInferrer` 一致：
+    /// - spec.primaryKeyColumn != nil → 用该列作 PK，不注入隐式 id
+    /// - 否则注入 BIGINT AUTO_INCREMENT id
     private func effectiveCreateSQL(spec: CSVTableInferrer.Spec) -> String {
         guard let qualified = try? SQLIdentifier.qualified(database: database, table: newTableName) else {
             return spec.createSQL
         }
         var lines: [String] = []
-        lines.append("`id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY")
-        for c in spec.columns {
-            let type = editedTypes[c.cleanName] ?? c.mysqlType
-            let null = editedNullable[c.cleanName] ?? c.nullable
-            let qc = (try? SQLIdentifier.quote(c.cleanName)) ?? c.cleanName
-            lines.append("\(qc) \(type) \(null ? "NULL" : "NOT NULL")")
+        if let pkName = spec.primaryKeyColumn,
+           let pkCol = spec.columns.first(where: { $0.cleanName == pkName }) {
+            // CSV 已自带 id 列：把它作 PRIMARY KEY，强制 NOT NULL
+            let type = editedTypes[pkCol.cleanName] ?? pkCol.mysqlType
+            let qc = (try? SQLIdentifier.quote(pkCol.cleanName)) ?? pkCol.cleanName
+            lines.append("\(qc) \(type) NOT NULL PRIMARY KEY")
+            for c in spec.columns where c.cleanName != pkName {
+                let type = editedTypes[c.cleanName] ?? c.mysqlType
+                let null = editedNullable[c.cleanName] ?? c.nullable
+                let qc = (try? SQLIdentifier.quote(c.cleanName)) ?? c.cleanName
+                lines.append("\(qc) \(type) \(null ? "NULL" : "NOT NULL")")
+            }
+        } else {
+            // 注入隐式自增 id
+            lines.append("`id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY")
+            for c in spec.columns {
+                let type = editedTypes[c.cleanName] ?? c.mysqlType
+                let null = editedNullable[c.cleanName] ?? c.nullable
+                let qc = (try? SQLIdentifier.quote(c.cleanName)) ?? c.cleanName
+                lines.append("\(qc) \(type) \(null ? "NULL" : "NOT NULL")")
+            }
         }
         let body = lines.joined(separator: ",\n  ")
         return "CREATE TABLE \(qualified) (\n  \(body)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"

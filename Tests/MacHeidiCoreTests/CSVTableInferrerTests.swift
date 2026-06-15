@@ -112,6 +112,40 @@ struct CSVTableInferrerTests {
         )
         #expect(spec.createSQL.contains("`id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"))
         #expect(spec.createSQL.contains("ENGINE=InnoDB"))
-        #expect(spec.createSQL.contains("CHARSET=utf8mb4"))
+        #expect(spec.primaryKeyColumn == nil)
+        #expect(spec.pkIsAutoIncrement == true)
+    }
+
+    @Test("CSV with own 'id' column → that column becomes PK (no implicit id)")
+    func csvIdBecomesPK() throws {
+        let spec = try CSVTableInferrer.infer(
+            database: "db", table: "t",
+            headers: ["id", "name"],
+            rows: [
+                ["uuid-1", "a"],
+                ["uuid-2", "b"],
+            ]
+        )
+        // 不应该重复 id 列
+        let idCount = spec.createSQL.components(separatedBy: "`id`").count - 1
+        #expect(idCount == 1, "id should appear exactly once in CREATE TABLE")
+        // CSV 自带 id → 不是 AUTO_INCREMENT
+        #expect(!spec.createSQL.contains("AUTO_INCREMENT"))
+        #expect(spec.createSQL.contains("`id` VARCHAR"))
+        #expect(spec.createSQL.contains("PRIMARY KEY"))
+        #expect(spec.primaryKeyColumn == "id")
+        #expect(spec.pkIsAutoIncrement == false)
+    }
+
+    @Test("CSV id column is case-insensitive ('ID' / 'Id' also count)")
+    func csvIdCaseInsensitive() throws {
+        let spec = try CSVTableInferrer.infer(
+            database: "db", table: "t",
+            headers: ["ID", "name"],
+            rows: [["1", "a"]]
+        )
+        let idCount = spec.createSQL.components(separatedBy: "`ID`").count - 1
+        #expect(idCount == 1)
+        #expect(!spec.createSQL.contains("AUTO_INCREMENT"))
     }
 }
