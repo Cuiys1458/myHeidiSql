@@ -42,7 +42,7 @@ struct DataTabView: View {
                     Button {
                         Task { await env.activeClient?.cancel() }
                     } label: {
-                        Label("Cancel", systemImage: "stop.fill")
+                        Label(L("query.cancel"), systemImage: "stop.fill")
                     }
                     .keyboardShortcut(".", modifiers: .command)
                 }
@@ -101,15 +101,15 @@ struct DataTabView: View {
             }
             Spacer()
             Menu {
-                Section("Current Page") {
-                    Button("Export Page as CSV…") { exportCurrent(.csv) }
-                    Button("Export Page as TSV…") { exportCurrent(.tsv) }
-                    Button("Export Page as SQL…") { exportCurrent(.sql) }
+                Section(header: Text(L("data.exportPage"))) {
+                    Button(L("data.exportPageCSV")) { exportCurrent(.csv) }
+                    Button(L("data.exportPageTSV")) { exportCurrent(.tsv) }
+                    Button(L("data.exportPageSQL")) { exportCurrent(.sql) }
                 }
-                Section("Entire Table (with current WHERE)") {
-                    Button("Export All as CSV…") { exportAll(.csv) }
-                    Button("Export All as TSV…") { exportAll(.tsv) }
-                    Button("Export All as SQL…") { exportAll(.sql) }
+                Section(header: Text(L("data.exportAll"))) {
+                    Button(L("data.exportAllCSV")) { exportAll(.csv) }
+                    Button(L("data.exportAllTSV")) { exportAll(.tsv) }
+                    Button(L("data.exportAllSQL")) { exportAll(.sql) }
                 }
             } label: {
                 Label(L("data.export"), systemImage: "square.and.arrow.up")
@@ -142,10 +142,11 @@ struct DataTabView: View {
     @ViewBuilder
     private var whereBar: some View {
         HStack(spacing: 8) {
-            Text("WHERE")
+            Text(L("data.where"))
                 .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
-            TextField("e.g.  status = 'active'", text: $whereInput)
+            TextField("", text: $whereInput,
+                      prompt: Text(verbatim: "e.g.  status = 'active'"))
                 .textFieldStyle(.roundedBorder)
                 .font(.system(size: 12, design: .monospaced))
                 .onSubmit { applyWhere() }
@@ -153,7 +154,7 @@ struct DataTabView: View {
             Button {
                 applyWhere()
             } label: { Image(systemName: "play.fill") }
-            .help("Apply WHERE")
+            .help(Text(L("data.applyWhere")))
             .disabled(vm.hasPending)
             if !appliedWhere.isEmpty || !whereInput.isEmpty {
                 Button {
@@ -172,7 +173,9 @@ struct DataTabView: View {
         HStack(spacing: 12) {
             if isExporting {
                 ProgressView().controlSize(.small)
-                Text("Exporting… \(exportAllProgress) rows written")
+                Text(String(format: NSLocalizedString(
+                    "data.exporting", bundle: .module, comment: ""
+                ), exportAllProgress))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else if let msg = exportDoneMessage {
@@ -283,7 +286,7 @@ struct DataTabView: View {
 
             // 跳页输入框
             if let pages = p.totalPages, pages > 1 {
-                Text("Go:")
+                Text(L("data.go"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 TextField("", text: jumpPageBinding)
@@ -312,7 +315,7 @@ struct DataTabView: View {
 
             Divider().frame(height: 14)
 
-            Text("Page size:")
+            Text(L("data.pageSizeLabel"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Picker("", selection: pageSizeBinding) {
@@ -489,7 +492,7 @@ private struct NoPKCommitConfirmationSheet: View {
 
             HStack {
                 Spacer()
-                Button("Cancel") {
+                Button(L("common.cancel")) {
                     vm.pendingCommitConfirmation = nil
                 }
                 .keyboardShortcut(.cancelAction)

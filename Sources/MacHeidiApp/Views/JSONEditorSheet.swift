@@ -29,7 +29,9 @@ struct JSONEditorSheet: View {
             HStack(spacing: 8) {
                 Image(systemName: "curlybraces.square.fill")
                     .foregroundStyle(Color.accentColor)
-                Text("Edit JSON · `\(columnName)`")
+                Text(String(format: NSLocalizedString(
+                    "json.title", bundle: .module, comment: ""
+                ), columnName))
                     .font(.headline.monospaced())
                 Spacer()
                 Text(mysqlType)
@@ -42,20 +44,20 @@ struct JSONEditorSheet: View {
             HStack(spacing: 8) {
                 Button {
                     if let pretty = JSONHelper.prettyPrint(text) { text = pretty }
-                } label: { Label("Format", systemImage: "text.alignleft") }
+                } label: { Label(L("json.format"), systemImage: "text.alignleft") }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(!isValid)
 
                 Button {
                     if let mini = JSONHelper.minify(text) { text = mini }
-                } label: { Label("Minify", systemImage: "text.justify") }
+                } label: { Label(L("json.minify"), systemImage: "text.justify") }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(!isValid)
 
                 if nullable, let setNull = onSetNull {
-                    Button("Set NULL") { setNull() }
+                    Button(L("json.setNull")) { setNull() }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                 }
@@ -99,9 +101,9 @@ struct JSONEditorSheet: View {
             // 底部按钮
             HStack {
                 Spacer()
-                Button("Cancel", action: onCancel)
+                Button(L("json.cancel"), action: onCancel)
                     .keyboardShortcut(.cancelAction)
-                Button("Apply", action: onApply)
+                Button(L("json.apply"), action: onApply)
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .disabled(!isValid)
@@ -130,13 +132,13 @@ struct JSONEditorSheet: View {
         case .valid:
             HStack(spacing: 4) {
                 Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
-                Text("Valid").foregroundStyle(.green)
+                Text(L("json.valid")).foregroundStyle(.green)
             }
             .font(.caption)
         case .invalid:
             HStack(spacing: 4) {
                 Image(systemName: "xmark.octagon.fill").foregroundStyle(.red)
-                Text("Invalid").foregroundStyle(.red)
+                Text(L("json.invalid")).foregroundStyle(.red)
             }
             .font(.caption)
         }
@@ -145,11 +147,17 @@ struct JSONEditorSheet: View {
     private var statsLabel: String {
         var parts: [String] = []
         if stats.topLevelKeys >= 0 {
-            parts.append("\(stats.topLevelKeys) key\(stats.topLevelKeys == 1 ? "" : "s")")
+            parts.append(String(format: NSLocalizedString(
+                "json.statsKeys", bundle: .module, comment: ""
+            ), stats.topLevelKeys))
         } else if stats.topLevelItems >= 0 {
-            parts.append("\(stats.topLevelItems) item\(stats.topLevelItems == 1 ? "" : "s")")
+            parts.append(String(format: NSLocalizedString(
+                "json.statsItems", bundle: .module, comment: ""
+            ), stats.topLevelItems))
         }
-        parts.append("\(stats.byteCount) byte\(stats.byteCount == 1 ? "" : "s")")
+        parts.append(String(format: NSLocalizedString(
+            "json.statsBytes", bundle: .module, comment: ""
+        ), stats.byteCount))
         return parts.joined(separator: " · ")
     }
 
@@ -169,7 +177,11 @@ struct JSONEditorSheet: View {
     }
 
     private func formatError(_ msg: String, offset: Int?) -> String {
-        if let offset { return "\(msg) (at byte \(offset))" }
+        if let offset {
+            return String(format: NSLocalizedString(
+                "json.errorAtByte", bundle: .module, comment: ""
+            ), msg, offset)
+        }
         return msg
     }
 }

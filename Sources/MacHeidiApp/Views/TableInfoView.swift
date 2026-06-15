@@ -27,12 +27,12 @@ struct TableInfoView: View {
                 Button {
                     showEditSchema = true
                 } label: {
-                    Label("Edit Structure", systemImage: "wrench.and.screwdriver")
+                    Label(L("info.editStructure"), systemImage: "wrench.and.screwdriver")
                 }
                 Button {
                     Task { await load() }
                 } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
+                    Label(L("info.refresh"), systemImage: "arrow.clockwise")
                 }
                 .keyboardShortcut("r", modifiers: .command)
             }
@@ -82,7 +82,7 @@ struct TableInfoView: View {
     @ViewBuilder
     private func statusSection(_ s: TableStatus) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Status").font(.headline)
+            Text(L("info.status")).font(.headline)
             Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 4) {
                 statusRow("Engine", s.engine)
                 statusRow("Rows (estimate)", s.rows.map(String.init) ?? "?")
@@ -101,7 +101,7 @@ struct TableInfoView: View {
     private func columnsSection(_ s: TableSchema) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text("Columns").font(.headline)
+                Text(L("info.columns")).font(.headline)
                 Text("(\(s.columns.count))").foregroundStyle(.secondary)
                 if !s.primaryKey.isEmpty {
                     Image(systemName: "key.fill").foregroundStyle(.yellow)
@@ -144,7 +144,7 @@ struct TableInfoView: View {
     private func indicesSection(_ idx: [IndexMeta]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Indexes").font(.headline)
+                Text(L("info.indexes")).font(.headline)
                 Text("(\(idx.count))").foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 0) {
@@ -189,7 +189,7 @@ struct TableInfoView: View {
     private func foreignKeysSection(_ fks: [AppEnvironment.ForeignKeyEntry]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Foreign Keys").font(.headline)
+                Text(L("info.foreignKeys")).font(.headline)
                 Text("(\(fks.count))").foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 0) {
@@ -226,9 +226,9 @@ struct TableInfoView: View {
     private func ddlSection(_ ddl: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("DDL").font(.headline)
+                Text(L("info.ddl")).font(.headline)
                 Spacer()
-                Button("Copy") {
+                Button(L("info.copy")) {
                     let pb = NSPasteboard.general
                     pb.clearContents()
                     pb.setString(ddl, forType: .string)

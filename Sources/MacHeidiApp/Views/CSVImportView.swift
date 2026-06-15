@@ -59,7 +59,9 @@ struct CSVImportView: View {
     private var header: some View {
         HStack(spacing: 8) {
             Image(systemName: "square.and.arrow.down.on.square")
-            Text("Import CSV → `\(vm.database)`.`\(vm.table)`")
+            Text(String(format: NSLocalizedString(
+                "csv.title", bundle: .module, comment: ""
+            ), vm.database, vm.table))
                 .font(.headline.monospaced())
             Spacer()
         }
@@ -78,7 +80,7 @@ struct CSVImportView: View {
             Button {
                 pickFile()
             } label: {
-                Label("Choose File…", systemImage: "folder")
+                Label(L("csv.pickFile"), systemImage: "folder")
             }
             .controlSize(.large)
             Spacer()
@@ -134,7 +136,7 @@ struct CSVImportView: View {
 
             // 中间：列映射（可滚动，固定占用一半空间）
             VStack(alignment: .leading, spacing: 6) {
-                Text("Column Mapping")
+                Text(L("csv.colMapping"))
                     .font(.subheadline.bold())
                     .padding(.horizontal, 16)
                 ScrollView {
@@ -150,7 +152,7 @@ struct CSVImportView: View {
             if !vm.preview.isEmpty {
                 Divider()
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Preview (first 20 rows)")
+                    Text(L("csv.preview"))
                         .font(.subheadline.bold())
                         .padding(.horizontal, 16)
                     ScrollView([.horizontal, .vertical]) {
@@ -285,11 +287,11 @@ struct CSVImportView: View {
     private var footer: some View {
         HStack {
             Spacer()
-            Button("Close") { onClose() }
+            Button(L("csv.cancel")) { onClose() }
                 .keyboardShortcut(.cancelAction)
                 .disabled(vm.importing)
             if !vm.importing && !vm.importDone && vm.importError == nil {
-                Button("Import") {
+                Button(L("csv.import")) {
                     Task { await vm.performImport(env: env) }
                 }
                 .keyboardShortcut(.defaultAction)

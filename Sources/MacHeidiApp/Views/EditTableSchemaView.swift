@@ -93,7 +93,9 @@ struct EditTableSchemaView: View {
     private var header: some View {
         HStack {
             Image(systemName: "wrench.and.screwdriver.fill")
-            Text("Edit Structure → `\(database)`.`\(table)`")
+            Text(String(format: NSLocalizedString(
+                "ddl.title", bundle: .module, comment: ""
+            ), database, table))
                 .font(.headline.monospaced())
             Spacer()
         }
@@ -110,11 +112,11 @@ struct EditTableSchemaView: View {
                     .lineLimit(1).help(err)
             }
             Spacer()
-            Button("Close") { isPresented = false }
+            Button(L("ddl.close")) { isPresented = false }
                 .keyboardShortcut(.cancelAction)
                 .disabled(executing)
             if pendingSQL != nil {
-                Button("Apply") { Task { await execute() } }
+                Button(L("ddl.apply")) { Task { await execute() } }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .disabled(executing)
@@ -130,7 +132,7 @@ struct EditTableSchemaView: View {
     private func existingSection(_ s: TableSchema) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Columns").font(.headline)
+                Text(L("ddl.columns")).font(.headline)
                 Text("(\(s.columns.count))").foregroundStyle(.secondary)
                 Spacer()
                 Button {
@@ -139,7 +141,7 @@ struct EditTableSchemaView: View {
                     draftPosition = nil
                     pendingSQL = nil
                 } label: {
-                    Label("Add Column", systemImage: "plus.circle.fill")
+                    Label(L("ddl.addColumn"), systemImage: "plus.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
@@ -147,12 +149,12 @@ struct EditTableSchemaView: View {
             ScrollView(.horizontal, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
-                        th("Name", w: 220)
-                        th("Type", w: 200)
-                        th("Null", w: 60)
-                        th("Default", w: 140)
-                        th("Extra", w: 140)
-                        th("Actions", w: 220)
+                        thL("ddl.colName", w: 220)
+                        thL("ddl.colType", w: 200)
+                        thL("ddl.colNull", w: 60)
+                        thL("ddl.colDefault", w: 140)
+                        thL("ddl.colExtra", w: 140)
+                        thL("ddl.actions", w: 220)
                     }
                     .padding(.vertical, 4)
                     .background(Color(NSColor.controlBackgroundColor))
@@ -187,11 +189,11 @@ struct EditTableSchemaView: View {
                                 .frame(width: 140, alignment: .leading)
                                 .padding(.horizontal, 8)
                             HStack(spacing: 4) {
-                                Button("Modify") { startModify(c) }
+                                Button(L("ddl.modify")) { startModify(c) }
                                     .controlSize(.mini)
-                                Button("Rename") { startRename(c) }
+                                Button(L("ddl.rename")) { startRename(c) }
                                     .controlSize(.mini)
-                                Button("Drop", role: .destructive) {
+                                Button(L("ddl.drop"), role: .destructive) {
                                     generateDrop(name: c.name)
                                 }
                                 .controlSize(.mini)
@@ -216,47 +218,52 @@ struct EditTableSchemaView: View {
                 HStack {
                     Text(editorTitle).font(.headline)
                     Spacer()
-                    Button("Cancel") { draftMode = .none; pendingSQL = nil }
+                    Button(L("ddl.cancel")) { draftMode = .none; pendingSQL = nil }
                         .controlSize(.small)
                 }
                 Form {
                     if draftMode == .rename {
-                        LabeledContent("Old Name") {
+                        LabeledContent {
                             Text(draftOldName).foregroundStyle(.secondary)
+                        } label: {
+                            Text(L("ddl.colName"))
                         }
                     }
-                    TextField("Column Name", text: $draftSpec.name)
-                    TextField("Type (e.g. INT, VARCHAR(100), BIGINT UNSIGNED)",
-                              text: $draftSpec.mysqlType)
-                    Toggle("Nullable", isOn: $draftSpec.nullable)
-                    TextField("Default literal (optional, e.g. 0, 'active', NULL)",
-                              text: Binding(
+                    TextField("", text: $draftSpec.name,
+                              prompt: Text(L("ddl.colName")))
+                    TextField("", text: $draftSpec.mysqlType,
+                              prompt: Text(L("ddl.colType")))
+                    Toggle(L("ddl.colNullable"), isOn: $draftSpec.nullable)
+                    TextField("", text: Binding(
                                 get: { draftSpec.defaultLiteral ?? "" },
                                 set: { draftSpec.defaultLiteral = $0.isEmpty ? nil : $0 }
-                              ))
-                    Toggle("AUTO_INCREMENT", isOn: $draftSpec.isAutoIncrement)
+                              ),
+                              prompt: Text(L("ddl.colDefault")))
+                    Toggle(L("ddl.colAuto"), isOn: $draftSpec.isAutoIncrement)
                     if draftMode == .add {
-                        Toggle("Set as PRIMARY KEY", isOn: $draftSpec.isPrimaryKey)
-                        Picker("Position", selection: positionBinding(in: s)) {
-                            Text("(end of table)").tag(Optional<AlterColumnOperation.Position>.none)
-                            Text("FIRST").tag(Optional.some(AlterColumnOperation.Position.first))
+                        Toggle(L("ddl.colPK"), isOn: $draftSpec.isPrimaryKey)
+                        Picker(selection: positionBinding(in: s)) {
+                            Text(L("ddl.posNone")).tag(Optional<AlterColumnOperation.Position>.none)
+                            Text(L("ddl.posFirst")).tag(Optional.some(AlterColumnOperation.Position.first))
                             ForEach(s.columns, id: \.name) { col in
-                                Text("AFTER \(col.name)")
+                                Text(verbatim: "AFTER \(col.name)")
                                     .tag(Optional.some(AlterColumnOperation.Position.after(col.name)))
                             }
+                        } label: {
+                            Text(L("ddl.position"))
                         }
                     }
-                    TextField("Comment (optional)",
-                              text: Binding(
+                    TextField("", text: Binding(
                                 get: { draftSpec.comment ?? "" },
                                 set: { draftSpec.comment = $0.isEmpty ? nil : $0 }
-                              ))
+                              ),
+                              prompt: Text(L("ddl.colComment")))
                 }
                 .formStyle(.grouped)
                 Button {
                     generateFromDraft()
                 } label: {
-                    Label("Generate SQL", systemImage: "wand.and.stars")
+                    Label(L("ddl.generateSQL"), systemImage: "wand.and.stars")
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(draftSpec.name.isEmpty || draftSpec.mysqlType.isEmpty)
@@ -271,7 +278,7 @@ struct EditTableSchemaView: View {
     private func indexesSection(_ s: TableSchema) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Indexes").font(.headline)
+                Text(L("ddl.indexes")).font(.headline)
                 Text("(\(s.indices.count))").foregroundStyle(.secondary)
                 Spacer()
                 Button {
@@ -281,23 +288,23 @@ struct EditTableSchemaView: View {
                     idxUnique = false
                     pendingSQL = nil
                 } label: {
-                    Label("Add Index", systemImage: "plus.circle.fill")
+                    Label(L("ddl.addIndex"), systemImage: "plus.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
             }
             if s.indices.isEmpty {
-                Text("No indexes defined.")
+                Text(L("ddl.idx.empty"))
                     .foregroundStyle(.tertiary)
                     .font(.caption)
                     .padding(.vertical, 8)
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
-                        th("Name", w: 240)
-                        th("Columns", w: 320)
-                        th("Type", w: 100)
-                        th("Actions", w: 120)
+                        thL("ddl.idxName", w: 240)
+                        thL("ddl.idxColumns", w: 320)
+                        thL("ddl.idx.type", w: 100)
+                        thL("ddl.actions", w: 120)
                     }
                     .padding(.vertical, 4)
                     .background(Color(NSColor.controlBackgroundColor))
@@ -326,7 +333,7 @@ struct EditTableSchemaView: View {
                                 .font(.caption)
                                 .frame(width: 100, alignment: .leading)
                                 .padding(.horizontal, 8)
-                            Button("Drop", role: .destructive) {
+                            Button(L("ddl.drop"), role: .destructive) {
                                 dropIndex(name: m.name)
                             }
                             .controlSize(.mini)
@@ -347,15 +354,15 @@ struct EditTableSchemaView: View {
         if idxDraftMode == .add {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Add Index").font(.headline)
+                    Text(L("ddl.addIndex")).font(.headline)
                     Spacer()
-                    Button("Cancel") { idxDraftMode = .none; pendingSQL = nil }
+                    Button(L("ddl.cancel")) { idxDraftMode = .none; pendingSQL = nil }
                         .controlSize(.small)
                 }
                 Form {
-                    TextField("Index Name (e.g. idx_email)", text: $idxName)
-                    Toggle("UNIQUE", isOn: $idxUnique)
-                    LabeledContent("Columns") {
+                    TextField("", text: $idxName, prompt: Text(L("ddl.idxName")))
+                    Toggle(L("ddl.idxUnique"), isOn: $idxUnique)
+                    LabeledContent {
                         VStack(alignment: .leading, spacing: 4) {
                             ForEach(s.columns, id: \.name) { col in
                                 Toggle(isOn: idxColBinding(col.name)) {
@@ -366,13 +373,15 @@ struct EditTableSchemaView: View {
                                 }
                             }
                         }
+                    } label: {
+                        Text(L("ddl.idxColumns"))
                     }
                 }
                 .formStyle(.grouped)
                 Button {
                     generateAddIndex(schema: s)
                 } label: {
-                    Label("Generate SQL", systemImage: "wand.and.stars")
+                    Label(L("ddl.generateSQL"), systemImage: "wand.and.stars")
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(idxName.isEmpty || idxColumns.isEmpty)
@@ -428,7 +437,7 @@ struct EditTableSchemaView: View {
     private func foreignKeysSection(_ s: TableSchema) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Foreign Keys").font(.headline)
+                Text(L("ddl.foreignKeys")).font(.headline)
                 Text("(\(fks.count))").foregroundStyle(.secondary)
                 Spacer()
                 Button {
@@ -442,23 +451,23 @@ struct EditTableSchemaView: View {
                     fkOnUpdate = .noAction
                     pendingSQL = nil
                 } label: {
-                    Label("Add Foreign Key", systemImage: "link.badge.plus")
+                    Label(L("ddl.addForeignKey"), systemImage: "link.badge.plus")
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
             }
             if fks.isEmpty {
-                Text("No foreign keys defined.")
+                Text(L("ddl.fk.empty"))
                     .foregroundStyle(.tertiary)
                     .font(.caption)
                     .padding(.vertical, 8)
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
-                        th("Constraint", w: 200)
-                        th("Column", w: 160)
-                        th("References", w: 320)
-                        th("Actions", w: 120)
+                        thL("ddl.fk.constraint", w: 200)
+                        thL("bulk.column", w: 160)
+                        thL("ddl.fk.references", w: 320)
+                        thL("ddl.actions", w: 120)
                     }
                     .padding(.vertical, 4)
                     .background(Color(NSColor.controlBackgroundColor))
@@ -491,7 +500,7 @@ struct EditTableSchemaView: View {
                                 .font(.caption.monospaced()).foregroundStyle(.secondary)
                                 .frame(width: 320, alignment: .leading)
                                 .padding(.horizontal, 8).lineLimit(1)
-                            Button("Drop", role: .destructive) {
+                            Button(L("ddl.drop"), role: .destructive) {
                                 dropForeignKey(name: name)
                             }
                             .controlSize(.mini)
@@ -512,20 +521,21 @@ struct EditTableSchemaView: View {
         if fkDraftMode == .add {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Add Foreign Key").font(.headline)
+                    Text(L("ddl.addForeignKey")).font(.headline)
                     Spacer()
-                    Button("Cancel") { fkDraftMode = .none; pendingSQL = nil }
+                    Button(L("ddl.cancel")) { fkDraftMode = .none; pendingSQL = nil }
                         .controlSize(.small)
                 }
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                     GridRow {
-                        Text("Constraint name").font(.caption)
-                        TextField("fk_<table>_<col>", text: $fkName)
+                        Text(L("ddl.fk.constraint")).font(.caption)
+                        TextField("", text: $fkName,
+                                  prompt: Text(verbatim: "fk_<table>_<col>"))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 320)
                     }
                     GridRow {
-                        Text("Local columns").font(.caption)
+                        Text(L("ddl.fk.localCols")).font(.caption)
                         VStack(alignment: .leading, spacing: 2) {
                             ForEach(s.columns, id: \.name) { c in
                                 Toggle(isOn: Binding(
@@ -543,25 +553,28 @@ struct EditTableSchemaView: View {
                         .padding(.vertical, 4)
                     }
                     GridRow {
-                        Text("Ref database").font(.caption)
-                        TextField("(留空表示当前库)", text: $fkRefDatabase)
+                        Text(L("ddl.fk.refDatabase")).font(.caption)
+                        TextField("", text: $fkRefDatabase,
+                                  prompt: Text(L("ddl.fk.refDatabasePh")))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 320)
                     }
                     GridRow {
-                        Text("Ref table").font(.caption)
-                        TextField("users", text: $fkRefTable)
+                        Text(L("ddl.fk.refTable")).font(.caption)
+                        TextField("", text: $fkRefTable,
+                                  prompt: Text(verbatim: "users"))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 320)
                     }
                     GridRow {
-                        Text("Ref columns").font(.caption)
-                        TextField("id（多列用逗号分隔）", text: $fkRefColumns)
+                        Text(L("ddl.fk.refColumns")).font(.caption)
+                        TextField("", text: $fkRefColumns,
+                                  prompt: Text(L("ddl.fk.refColumnsPh")))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 320)
                     }
                     GridRow {
-                        Text("ON DELETE").font(.caption)
+                        Text(L("ddl.fk.onDelete")).font(.caption)
                         Picker("", selection: $fkOnDelete) {
                             ForEach(DDLGenerator.ForeignKeySpec.ReferentialAction.allCases,
                                     id: \.self) { Text($0.rawValue).tag($0) }
@@ -570,7 +583,7 @@ struct EditTableSchemaView: View {
                         .frame(width: 200)
                     }
                     GridRow {
-                        Text("ON UPDATE").font(.caption)
+                        Text(L("ddl.fk.onUpdate")).font(.caption)
                         Picker("", selection: $fkOnUpdate) {
                             ForEach(DDLGenerator.ForeignKeySpec.ReferentialAction.allCases,
                                     id: \.self) { Text($0.rawValue).tag($0) }
@@ -582,7 +595,7 @@ struct EditTableSchemaView: View {
                 Button {
                     addForeignKey()
                 } label: {
-                    Label("Generate SQL", systemImage: "wand.and.stars")
+                    Label(L("ddl.generateSQL"), systemImage: "wand.and.stars")
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
@@ -640,7 +653,7 @@ struct EditTableSchemaView: View {
     private func tableOptionsSection(_ s: TableSchema) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Table Options").font(.headline)
+                Text(L("ddl.tableOptions")).font(.headline)
                 Spacer()
                 Button {
                     optDraftOpen.toggle()
@@ -653,7 +666,7 @@ struct EditTableSchemaView: View {
                         pendingSQL = nil
                     }
                 } label: {
-                    Label(optDraftOpen ? "Hide" : "Edit Options",
+                    Label(optDraftOpen ? L("ddl.hideOptions") : L("ddl.editOptions"),
                           systemImage: optDraftOpen ? "chevron.up" : "slider.horizontal.3")
                 }
                 .controlSize(.small)
@@ -661,32 +674,37 @@ struct EditTableSchemaView: View {
             if optDraftOpen {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                     GridRow {
-                        Text("ENGINE").font(.caption)
-                        TextField("InnoDB / MyISAM", text: $optEngine)
+                        Text(L("ddl.opts.engine")).font(.caption)
+                        TextField("", text: $optEngine,
+                                  prompt: Text(verbatim: "InnoDB / MyISAM"))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 280)
                     }
                     GridRow {
-                        Text("DEFAULT CHARSET").font(.caption)
-                        TextField("utf8mb4", text: $optCharset)
+                        Text(L("ddl.opts.charset")).font(.caption)
+                        TextField("", text: $optCharset,
+                                  prompt: Text(verbatim: "utf8mb4"))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 280)
                     }
                     GridRow {
-                        Text("COLLATE").font(.caption)
-                        TextField("utf8mb4_general_ci", text: $optCollation)
+                        Text(L("ddl.opts.collation")).font(.caption)
+                        TextField("", text: $optCollation,
+                                  prompt: Text(verbatim: "utf8mb4_general_ci"))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 280)
                     }
                     GridRow {
-                        Text("COMMENT").font(.caption)
-                        TextField("(留空不动)", text: $optComment)
+                        Text(L("ddl.opts.comment")).font(.caption)
+                        TextField("", text: $optComment,
+                                  prompt: Text(L("ddl.opts.commentPh")))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 480)
                     }
                     GridRow {
-                        Text("Rename to").font(.caption)
-                        TextField("(留空不重命名)", text: $optNewName)
+                        Text(L("ddl.opts.rename")).font(.caption)
+                        TextField("", text: $optNewName,
+                                  prompt: Text(L("ddl.opts.renamePh")))
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 280)
                     }
@@ -695,11 +713,11 @@ struct EditTableSchemaView: View {
                     Button {
                         applyTableOptions()
                     } label: {
-                        Label("Generate SQL", systemImage: "wand.and.stars")
+                        Label(L("ddl.generateSQL"), systemImage: "wand.and.stars")
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
-                    Text("非空字段才会写入 SQL")
+                    Text(L("ddl.opts.hint"))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -728,7 +746,7 @@ struct EditTableSchemaView: View {
                 comment: optComment.isEmpty ? nil : optComment
             )
             guard let sql else {
-                actionError = "请至少填一个字段"
+                actionError = LS("ddl.opts.fillFirst")
                 return
             }
             pendingSQL = sql
@@ -742,7 +760,7 @@ struct EditTableSchemaView: View {
     @ViewBuilder
     private func previewSection(_ sql: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("SQL Preview").font(.headline)
+            Text(L("ddl.preview")).font(.headline)
             ScrollView {
                 Text(sql)
                     .font(.system(.callout, design: .monospaced))
@@ -767,6 +785,14 @@ struct EditTableSchemaView: View {
     @ViewBuilder
     private func th(_ s: String, w: CGFloat) -> some View {
         Text(s).font(.caption.bold()).foregroundStyle(.secondary)
+            .frame(width: w, alignment: .leading)
+            .padding(.horizontal, 8)
+    }
+
+    /// 同 th，但字符串走 i18n。
+    @ViewBuilder
+    private func thL(_ key: String, w: CGFloat) -> some View {
+        Text(LS(key)).font(.caption.bold()).foregroundStyle(.secondary)
             .frame(width: w, alignment: .leading)
             .padding(.horizontal, 8)
     }

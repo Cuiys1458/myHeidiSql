@@ -87,7 +87,7 @@ struct SessionManagerView: View {
                     Button {
                         addNew()
                     } label: {
-                        Label("New Connection…", systemImage: "plus.circle.fill")
+                        Label(L("session.new"), systemImage: "plus.circle.fill")
                     }
                     .controlSize(.large)
                     .keyboardShortcut("n", modifiers: .command)
@@ -107,16 +107,16 @@ struct SessionManagerView: View {
                     Label(r, systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green).font(.callout)
                 } else if hasSelection {
-                    Text("Changes save automatically")
+                    Text(L("sessionMgr.bottomHint"))
                         .foregroundStyle(.tertiary).font(.caption)
                 }
                 Spacer()
-                Button("Test") { testConnection() }
+                Button(L("session.test")) { testConnection() }
                     .disabled(!hasSelection || testing)
-                Button("Open") { openSelected() }
+                Button(L("session.open")) { openSelected() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!hasSelection)
-                Button("Close") { isPresented = false }
+                Button(L("session.close")) { isPresented = false }
                     .keyboardShortcut(.cancelAction)
             }
             .padding()
@@ -265,20 +265,20 @@ private struct SessionForm: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Identity")
+                Text(L("sessionMgr.identity"))
                     .font(.subheadline.bold())
                     .foregroundStyle(.secondary)
                     .padding(.leading, 4)
 
                 VStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Name").font(.caption).foregroundStyle(.secondary)
+                        Text(L("session.name")).font(.caption).foregroundStyle(.secondary)
                         TextField("", text: $draft.name)
                             .labelsHidden()
                             .textFieldStyle(.roundedBorder)
                     }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Comment").font(.caption).foregroundStyle(.secondary)
+                        Text(L("session.comment")).font(.caption).foregroundStyle(.secondary)
                         TextField("", text: $draft.comment, axis: .vertical)
                             .labelsHidden()
                             .textFieldStyle(.roundedBorder)
@@ -289,47 +289,47 @@ private struct SessionForm: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Connection")
+                Text(L("sessionMgr.connection"))
                     .font(.subheadline.bold())
                     .foregroundStyle(.secondary)
                     .padding(.leading, 4)
 
                 VStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Hostname / IP").font(.caption).foregroundStyle(.secondary)
+                        Text(L("session.host")).font(.caption).foregroundStyle(.secondary)
                         TextField("", text: $draft.hostname)
                             .labelsHidden()
                             .textFieldStyle(.roundedBorder)
                     }
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Port").font(.caption).foregroundStyle(.secondary)
+                            Text(L("session.port")).font(.caption).foregroundStyle(.secondary)
                             TextField("", value: $draft.port, format: .number)
                                 .labelsHidden()
                                 .textFieldStyle(.roundedBorder)
                                 .frame(maxWidth: 120)
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("User").font(.caption).foregroundStyle(.secondary)
+                            Text(L("session.user")).font(.caption).foregroundStyle(.secondary)
                             TextField("", text: $draft.user)
                                 .labelsHidden()
                                 .textFieldStyle(.roundedBorder)
                         }
                     }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Password").font(.caption).foregroundStyle(.secondary)
+                        Text(L("session.password")).font(.caption).foregroundStyle(.secondary)
                         SecureField("", text: $draft.password)
                             .labelsHidden()
                             .textFieldStyle(.roundedBorder)
                     }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Default Database(s)").font(.caption).foregroundStyle(.secondary)
+                        Text(L("session.defaultDb")).font(.caption).foregroundStyle(.secondary)
                         TextField("", text: $draft.defaultDatabases)
                             .labelsHidden()
                             .textFieldStyle(.roundedBorder)
                     }
                     HStack(spacing: 12) {
-                        Toggle("Use SSL", isOn: $draft.useSSL)
+                        Toggle(L("session.useSSL"), isOn: $draft.useSSL)
                             .toggleStyle(.switch)
                             .controlSize(.mini)
                             .padding(.top, 4)
@@ -341,11 +341,11 @@ private struct SessionForm: View {
             // ── SSH 隧道（PRD §11 v0.2）
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("SSH Tunnel (optional)")
+                    Text(L("session.sshTunnel"))
                         .font(.subheadline.bold())
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Toggle("Enable", isOn: sshEnabledBinding)
+                    Toggle(L("session.enable"), isOn: sshEnabledBinding)
                         .toggleStyle(.switch)
                         .controlSize(.mini)
                 }
@@ -355,24 +355,24 @@ private struct SessionForm: View {
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("SSH Host").font(.caption).foregroundStyle(.secondary)
+                                Text(L("sessionMgr.sshHost")).font(.caption).foregroundStyle(.secondary)
                                 TextField("", text: sshHostBinding)
                                     .labelsHidden().textFieldStyle(.roundedBorder)
                             }
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Port").font(.caption).foregroundStyle(.secondary)
+                                Text(L("sessionMgr.sshPort")).font(.caption).foregroundStyle(.secondary)
                                 TextField("", value: sshPortBinding, format: .number)
                                     .labelsHidden().textFieldStyle(.roundedBorder)
                                     .frame(maxWidth: 100)
                             }
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("SSH User").font(.caption).foregroundStyle(.secondary)
+                            Text(L("sessionMgr.sshUser")).font(.caption).foregroundStyle(.secondary)
                             TextField("", text: sshUserBinding)
                                 .labelsHidden().textFieldStyle(.roundedBorder)
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Private Key Path (optional, e.g. ~/.ssh/id_ed25519)")
+                            Text(L("sessionMgr.sshKey"))
                                 .font(.caption).foregroundStyle(.secondary)
                             TextField("", text: sshKeyBinding)
                                 .labelsHidden().textFieldStyle(.roundedBorder)

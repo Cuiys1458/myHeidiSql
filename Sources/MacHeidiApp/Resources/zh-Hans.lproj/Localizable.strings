@@ -179,3 +179,185 @@
 "common.open" = "打开";
 "common.error" = "错误";
 "common.warning" = "警告";
+
+// Data Tab — extra
+"data.exportTitle" = "导出";
+"data.exportPage" = "当前页";
+"data.exportAll" = "整张表";
+"data.exportPageCSV" = "当前页导出为 CSV…";
+"data.exportPageTSV" = "当前页导出为 TSV…";
+"data.exportPageSQL" = "当前页导出为 SQL…";
+"data.exportAllCSV" = "整表导出为 CSV…";
+"data.exportAllTSV" = "整表导出为 TSV…";
+"data.exportAllSQL" = "整表导出为 SQL…";
+"data.exportHelp" = "导出当前页或整张表";
+"data.applyWhere" = "应用 WHERE";
+"data.exporting" = "导出中… 已写入 %d 行";
+"data.go" = "跳转";
+"data.pageSizeLabel" = "每页：";
+"data.dot" = "·";
+
+// Query Tab
+"query.runAllLabel" = "全部执行 (⇧⌘R)";
+"query.runLabel" = "执行 (⌘⏎)";
+"query.runHelp" = "执行光标处当前语句";
+"query.cancelHelp" = "取消正在执行的查询 (⌘.)";
+"query.openHelp" = "打开 .sql 文件";
+"query.saveHelp" = "保存到 .sql 文件";
+"query.tabName" = "查询 %d";
+"query.results" = "结果";
+"query.messages" = "消息";
+"query.affectedRows" = "%d 行受影响，%dms";
+"query.runQueryHere" = "运行查询查看结果";
+
+// Edit cell
+"edit.title" = "编辑";
+"edit.setNull" = "设为 NULL";
+"edit.formatJSON" = "格式化 JSON";
+"edit.formatSQL" = "格式化 SQL";
+"edit.cancel" = "取消";
+"edit.save" = "保存";
+"edit.editColumn" = "编辑 `%@`";
+
+// JSON editor
+"json.title" = "编辑 JSON · `%@`";
+"json.format" = "格式化";
+"json.minify" = "压缩";
+"json.validate" = "校验";
+"json.valid" = "合法";
+"json.invalid" = "非法";
+"json.apply" = "应用";
+"json.cancel" = "取消";
+"json.setNull" = "设为 NULL";
+"json.errorAtByte" = "%@（位置：第 %d 字节）";
+"json.statsKeys" = "%d 键";
+"json.statsItems" = "%d 项";
+"json.statsBytes" = "%d 字节";
+
+// Bulk edit
+"bulk.title" = "批量设置选中单元格";
+"bulk.rowsCount" = "%d 行";
+"bulk.column" = "列";
+"bulk.value" = "值";
+"bulk.valuePlaceholder" = "（留空 = 设为 NULL，仅 nullable 列）";
+"bulk.applyTo" = "应用到 %d 行";
+"bulk.cancel" = "取消";
+
+// Session Manager
+"sessionMgr.identity" = "身份";
+"sessionMgr.connection" = "连接";
+"sessionMgr.bottomHint" = "修改自动保存";
+"sessionMgr.testing" = "测试中…";
+"sessionMgr.testOk" = "已连接 %@:%d 用户 %@";
+"sessionMgr.testFail" = "连接失败：%@";
+"sessionMgr.sshHost" = "跳板机 / IP";
+"sessionMgr.sshPort" = "SSH 端口";
+"sessionMgr.sshUser" = "SSH 用户";
+"sessionMgr.sshKey" = "私钥路径";
+"sessionMgr.sshKeyPick" = "选择…";
+"sessionMgr.sshPassphrase" = "passphrase";
+
+// Table Info
+"info.title" = "%@.%@";
+"info.refreshHelp" = "重新加载表信息";
+"info.statusEmpty" = "—";
+"info.indexes.unique" = "UNIQUE";
+"info.indexes.primary" = "PRIMARY";
+
+// Edit Structure / DDL
+"ddl.title" = "编辑结构 → `%@`.`%@`";
+"ddl.columns" = "列";
+"ddl.addColumn" = "添加列";
+"ddl.modifyColumn" = "修改列";
+"ddl.renameColumn" = "重命名列";
+"ddl.dropColumn" = "删除";
+"ddl.indexes" = "索引";
+"ddl.addIndex" = "添加索引";
+"ddl.foreignKeys" = "外键";
+"ddl.addForeignKey" = "添加外键";
+"ddl.tableOptions" = "表选项";
+"ddl.editOptions" = "编辑表选项";
+"ddl.hideOptions" = "收起";
+"ddl.generateSQL" = "生成 SQL";
+"ddl.preview" = "SQL 预览";
+"ddl.apply" = "应用";
+"ddl.close" = "关闭";
+"ddl.cancel" = "取消";
+"ddl.actions" = "操作";
+"ddl.modify" = "修改";
+"ddl.rename" = "重命名";
+"ddl.drop" = "删除";
+"ddl.colName" = "名称";
+"ddl.colType" = "类型";
+"ddl.colNull" = "可空";
+"ddl.colDefault" = "默认值";
+"ddl.colExtra" = "Extra";
+"ddl.colComment" = "注释";
+"ddl.colAuto" = "AUTO_INCREMENT";
+"ddl.colPK" = "PRIMARY KEY";
+"ddl.colNullable" = "Nullable";
+"ddl.position" = "位置";
+"ddl.posNone" = "末尾";
+"ddl.posFirst" = "FIRST";
+"ddl.posAfter" = "AFTER";
+"ddl.idxName" = "索引名";
+"ddl.idxColumns" = "列";
+"ddl.idxUnique" = "UNIQUE";
+"ddl.fk.constraint" = "约束名";
+"ddl.fk.localCols" = "本地列";
+"ddl.fk.refDatabase" = "引用库";
+"ddl.fk.refDatabasePh" = "（留空表示当前库）";
+"ddl.fk.refTable" = "引用表";
+"ddl.fk.refColumns" = "引用列";
+"ddl.fk.refColumnsPh" = "id（多列用逗号分隔）";
+"ddl.fk.onDelete" = "删除时";
+"ddl.fk.onUpdate" = "更新时";
+"ddl.fk.empty" = "暂无外键";
+"ddl.fk.references" = "引用";
+"ddl.idx.empty" = "暂无索引";
+"ddl.idx.type" = "类型";
+"ddl.opts.engine" = "ENGINE";
+"ddl.opts.charset" = "DEFAULT CHARSET";
+"ddl.opts.collation" = "COLLATE";
+"ddl.opts.comment" = "COMMENT";
+"ddl.opts.commentPh" = "（留空不动）";
+"ddl.opts.rename" = "重命名为";
+"ddl.opts.renamePh" = "（留空不重命名）";
+"ddl.opts.hint" = "非空字段才会写入 SQL";
+"ddl.opts.fillFirst" = "请至少填一个字段";
+
+// CSV Import
+"csv.title" = "导入 CSV → `%@`.`%@`";
+"csv.pickFile" = "选择文件…";
+"csv.fileLabel" = "文件";
+"csv.separator" = "分隔符";
+"csv.firstHeader" = "首行是表头";
+"csv.preview" = "预览（前 20 行）";
+"csv.colMapping" = "列映射";
+"csv.tableColumn" = "表列";
+"csv.csvColumn" = "CSV 列";
+"csv.skipColumn" = "（不导入）";
+"csv.totalRows" = "共 %d 行";
+"csv.missingRequired" = "以下 NOT NULL 列未映射：%@";
+"csv.import" = "开始导入";
+"csv.cancel" = "取消";
+"csv.importingRows" = "导入中… %d / %d";
+"csv.importSuccess" = "成功导入 %d 行";
+
+// Query history
+"history.title" = "查询历史";
+"history.search" = "搜索…";
+"history.empty" = "暂无历史记录";
+"history.useThis" = "使用此条";
+"history.copy" = "复制";
+"history.clear" = "清空全部";
+"history.close" = "关闭";
+
+// Status bar
+"status.disconnected" = "未连接";
+"status.connecting" = "连接中…";
+"status.connected" = "已连接";
+"status.idle" = "空闲";
+
+// Connection lost banner
+"banner.connectionLost" = "连接「%@」已断开。";

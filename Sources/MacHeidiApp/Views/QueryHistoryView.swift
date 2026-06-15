@@ -14,17 +14,17 @@ struct QueryHistoryView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Query History").font(.headline)
+                Text(L("history.title")).font(.headline)
                 Spacer()
                 Text("\(entries.count) entries")
                     .foregroundStyle(.secondary)
                     .font(.caption)
-                Button("Clear All", role: .destructive) {
+                Button(L("history.clear"), role: .destructive) {
                     QueryHistory.shared.clear()
                     reload()
                 }
                 .controlSize(.small)
-                Button("Close") { isPresented = false }
+                Button(L("history.close")) { isPresented = false }
                     .keyboardShortcut(.cancelAction)
             }
             .padding(10)
@@ -32,7 +32,8 @@ struct QueryHistoryView: View {
 
             HStack {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField("Filter by SQL or database…", text: $search)
+                TextField("", text: $search,
+                          prompt: Text(L("history.search")))
                     .textFieldStyle(.plain)
             }
             .padding(.horizontal, 10).padding(.vertical, 6)
@@ -78,12 +79,12 @@ struct QueryHistoryView: View {
                                 Text(db).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Button("Copy") {
+                            Button(L("history.copy")) {
                                 let pb = NSPasteboard.general
                                 pb.clearContents()
                                 pb.setString(entry.sql, forType: .string)
                             }
-                            Button("Use This") {
+                            Button(L("history.useThis")) {
                                 onUseQuery(entry.sql)
                                 isPresented = false
                             }

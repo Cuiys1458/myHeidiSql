@@ -179,3 +179,157 @@
 "common.open" = "Open";
 "common.error" = "Error";
 "common.warning" = "Warning";
+
+// Data Tab — extra
+"data.exportTitle" = "Export";
+"data.exportPage" = "Current Page";
+"data.exportAll" = "Entire Table";
+"data.exportPageCSV" = "Export Page as CSV…";
+"data.exportPageTSV" = "Export Page as TSV…";
+"data.exportPageSQL" = "Export Page as SQL…";
+"data.exportAllCSV" = "Export All as CSV…";
+"data.exportAllTSV" = "Export All as TSV…";
+"data.exportAllSQL" = "Export All as SQL…";
+"data.exportHelp" = "Export current page or entire table";
+"data.applyWhere" = "Apply WHERE";
+"data.exporting" = "Exporting… %d rows written";
+"data.go" = "Go";
+"data.pageSizeLabel" = "Page size:";
+"data.dot" = "·";
+
+// Query Tab
+"query.runAllLabel" = "Run All (⇧⌘R)";
+"query.runLabel" = "Run (⌘⏎)";
+"query.runHelp" = "Run statement at cursor";
+"query.cancelHelp" = "Cancel running query (⌘.)";
+"query.openHelp" = "Open .sql file";
+"query.saveHelp" = "Save to .sql file";
+"query.tabName" = "Query #%d";
+"query.results" = "Results";
+"query.messages" = "Messages";
+"query.affectedRows" = "%d rows affected, %dms";
+"query.runQueryHere" = "Run a query to see results.";
+
+// Edit cell
+"edit.editColumn" = "Edit `%@`";
+
+// JSON editor
+"json.title" = "Edit JSON · `%@`";
+"json.cancel" = "Cancel";
+"json.setNull" = "Set NULL";
+"json.errorAtByte" = "%@ (byte %d)";
+"json.statsKeys" = "%d keys";
+"json.statsItems" = "%d items";
+"json.statsBytes" = "%d bytes";
+
+// Bulk edit
+"bulk.title" = "Set Selected Cells";
+"bulk.rowsCount" = "%d rows";
+"bulk.column" = "Column";
+"bulk.value" = "Value";
+"bulk.valuePlaceholder" = "(blank = NULL, only nullable columns)";
+"bulk.applyTo" = "Apply to %d rows";
+"bulk.cancel" = "Cancel";
+
+// Session Manager
+"sessionMgr.identity" = "Identity";
+"sessionMgr.connection" = "Connection";
+"sessionMgr.bottomHint" = "Changes save automatically";
+"sessionMgr.testing" = "Testing…";
+"sessionMgr.testOk" = "Connected to %@:%d as %@";
+"sessionMgr.testFail" = "Connection failed: %@";
+"sessionMgr.sshHost" = "Jump host / IP";
+"sessionMgr.sshPort" = "SSH port";
+"sessionMgr.sshUser" = "SSH user";
+"sessionMgr.sshKey" = "Private key path";
+"sessionMgr.sshKeyPick" = "Choose…";
+"sessionMgr.sshPassphrase" = "passphrase";
+
+// Table Info
+"info.title" = "%@.%@";
+"info.refreshHelp" = "Reload table info";
+"info.statusEmpty" = "—";
+"info.indexes.unique" = "UNIQUE";
+"info.indexes.primary" = "PRIMARY";
+
+// Edit Structure / DDL
+"ddl.title" = "Edit Structure → `%@`.`%@`";
+"ddl.cancel" = "Cancel";
+"ddl.actions" = "Actions";
+"ddl.modify" = "Modify";
+"ddl.rename" = "Rename";
+"ddl.drop" = "Drop";
+"ddl.colName" = "Name";
+"ddl.colType" = "Type";
+"ddl.colNull" = "Null";
+"ddl.colDefault" = "Default";
+"ddl.colExtra" = "Extra";
+"ddl.colComment" = "Comment";
+"ddl.colAuto" = "AUTO_INCREMENT";
+"ddl.colPK" = "PRIMARY KEY";
+"ddl.colNullable" = "Nullable";
+"ddl.position" = "Position";
+"ddl.posNone" = "Append";
+"ddl.posFirst" = "FIRST";
+"ddl.posAfter" = "AFTER";
+"ddl.idxName" = "Index name";
+"ddl.idxColumns" = "Columns";
+"ddl.idxUnique" = "UNIQUE";
+"ddl.fk.constraint" = "Constraint name";
+"ddl.fk.localCols" = "Local columns";
+"ddl.fk.refDatabase" = "Ref database";
+"ddl.fk.refDatabasePh" = "(blank = current db)";
+"ddl.fk.refTable" = "Ref table";
+"ddl.fk.refColumns" = "Ref columns";
+"ddl.fk.refColumnsPh" = "id (comma-separated)";
+"ddl.fk.onDelete" = "ON DELETE";
+"ddl.fk.onUpdate" = "ON UPDATE";
+"ddl.fk.empty" = "No foreign keys defined.";
+"ddl.fk.references" = "References";
+"ddl.idx.empty" = "No indexes defined.";
+"ddl.idx.type" = "Type";
+"ddl.opts.engine" = "ENGINE";
+"ddl.opts.charset" = "DEFAULT CHARSET";
+"ddl.opts.collation" = "COLLATE";
+"ddl.opts.comment" = "COMMENT";
+"ddl.opts.commentPh" = "(blank = unchanged)";
+"ddl.opts.rename" = "Rename to";
+"ddl.opts.renamePh" = "(blank = no rename)";
+"ddl.opts.hint" = "Only non-empty fields are written to SQL";
+"ddl.opts.fillFirst" = "Please fill at least one field";
+
+// CSV Import
+"csv.title" = "Import CSV → `%@`.`%@`";
+"csv.pickFile" = "Choose file…";
+"csv.fileLabel" = "File";
+"csv.separator" = "Separator";
+"csv.firstHeader" = "First row is header";
+"csv.preview" = "Preview (first 20 rows)";
+"csv.colMapping" = "Column mapping";
+"csv.tableColumn" = "Table column";
+"csv.csvColumn" = "CSV column";
+"csv.skipColumn" = "(skip)";
+"csv.totalRows" = "%d rows total";
+"csv.missingRequired" = "Required columns unmapped: %@";
+"csv.import" = "Import";
+"csv.cancel" = "Cancel";
+"csv.importingRows" = "Importing… %d / %d";
+"csv.importSuccess" = "Imported %d rows";
+
+// Query history
+"history.title" = "Query History";
+"history.search" = "Search…";
+"history.empty" = "No history yet";
+"history.useThis" = "Use this";
+"history.copy" = "Copy";
+"history.clear" = "Clear All";
+"history.close" = "Close";
+
+// Status bar
+"status.disconnected" = "Disconnected";
+"status.connecting" = "Connecting…";
+"status.connected" = "Connected";
+"status.idle" = "Idle";
+
+// Connection lost banner
+"banner.connectionLost" = "Connection to '%@' was lost.";

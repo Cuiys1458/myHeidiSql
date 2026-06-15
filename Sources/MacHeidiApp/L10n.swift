@@ -49,6 +49,15 @@ extension Label where Title == Text, Icon == Image {
     }
 }
 
+extension Toggle where Label == Text {
+    /// Toggle(L("key"), isOn: ...)
+    init(_ key: ModuleLocalizedKey, isOn: Binding<Bool>) {
+        self.init(isOn: isOn) {
+            Text(key.value, bundle: .module)
+        }
+    }
+}
+
 /// 通过 strong typing 区分 module-bound key 和普通 LocalizedStringKey，
 /// 避免重载冲突。
 public struct ModuleLocalizedKey {

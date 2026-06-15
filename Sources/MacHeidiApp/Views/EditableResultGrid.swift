@@ -76,7 +76,7 @@ struct EditableResultGrid: View {
                     editingTarget = .insert(localId: id, columnIndex: firstCol)
                 }
             } label: {
-                Label("Insert Row", systemImage: "plus.circle")
+                Label(L("data.insertRow"), systemImage: "plus.circle")
             }
             .buttonStyle(.borderless)
 
@@ -97,7 +97,7 @@ struct EditableResultGrid: View {
             Text("\(vm.resultSet?.rows.count ?? 0) row\((vm.resultSet?.rows.count ?? 0) == 1 ? "" : "s")")
             if let total = vm.totalRows { Text("/ \(total) total") }
             if vm.schema?.hasPrimaryKey == false {
-                Label("No PK", systemImage: "exclamationmark.triangle.fill")
+                Label(L("data.noPK"), systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                     .help("This table has no primary key.")
             }
@@ -153,7 +153,9 @@ struct EditableResultGrid: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "pencil.circle.fill").foregroundStyle(Color.accentColor)
-                Text("Edit `\(col?.name ?? "")`")
+                Text(String(format: NSLocalizedString(
+                    "edit.editColumn", bundle: .module, comment: ""
+                ), col?.name ?? ""))
                     .font(.headline.monospaced())
                 Spacer()
                 if let c = col {
@@ -171,7 +173,7 @@ struct EditableResultGrid: View {
                 )
 
             if let col = col, col.nullable {
-                Button("Set NULL") {
+                Button(L("edit.setNull")) {
                     commitEdit(target: target, parsed: .null, column: col)
                 }
                 .buttonStyle(.borderless)
@@ -181,7 +183,7 @@ struct EditableResultGrid: View {
             if let col = col,
                col.normalizedType == .string,
                looksLikeSQL(editText) {
-                Button("Format SQL") {
+                Button(L("edit.formatSQL")) {
                     editText = SQLFormatter.format(editText)
                 }
                 .buttonStyle(.borderless)
@@ -193,9 +195,9 @@ struct EditableResultGrid: View {
 
             HStack {
                 Spacer()
-                Button("Cancel") { editingTarget = nil }
+                Button(L("edit.cancel")) { editingTarget = nil }
                     .keyboardShortcut(.cancelAction)
-                Button("Save") {
+                Button(L("edit.save")) {
                     guard let col = col else { return }
                     do {
                         let parsed: CellValue
@@ -257,17 +259,19 @@ struct EditableResultGrid: View {
                 HStack {
                     Image(systemName: "rectangle.stack.fill.badge.plus")
                         .foregroundStyle(Color.accentColor)
-                    Text("Set Selected Cells")
+                    Text(L("bulk.title"))
                         .font(.headline)
                     Spacer()
-                    Text("\(state.rowIndices.count) rows")
+                    Text(String(format: NSLocalizedString(
+                        "bulk.rowsCount", bundle: .module, comment: ""
+                    ), state.rowIndices.count))
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                 }
 
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                     GridRow {
-                        Text("Column").font(.caption)
+                        Text(L("bulk.column")).font(.caption)
                         Picker("", selection: bulkColumnBinding) {
                             ForEach(cols, id: \.name) { c in
                                 Text(c.name).tag(c.name)
@@ -277,9 +281,9 @@ struct EditableResultGrid: View {
                         .frame(width: 280)
                     }
                     GridRow {
-                        Text("Value").font(.caption)
-                        TextField("(留空 = 设为 NULL，仅 nullable 列)",
-                                  text: bulkValueBinding)
+                        Text(L("bulk.value")).font(.caption)
+                        TextField("", text: bulkValueBinding,
+                                  prompt: Text(L("bulk.valuePlaceholder")))
                             .textFieldStyle(.roundedBorder)
                             .font(.system(.body, design: .monospaced))
                             .frame(width: 360)
@@ -292,9 +296,11 @@ struct EditableResultGrid: View {
 
                 HStack {
                     Spacer()
-                    Button("Cancel") { bulkEditing = nil }
+                    Button(L("bulk.cancel")) { bulkEditing = nil }
                         .keyboardShortcut(.cancelAction)
-                    Button("Apply to \(state.rowIndices.count) rows") {
+                    Button(String(format: NSLocalizedString(
+                        "bulk.applyTo", bundle: .module, comment: ""
+                    ), state.rowIndices.count)) {
                         applyBulkEdit()
                     }
                     .keyboardShortcut(.defaultAction)
@@ -534,24 +540,24 @@ private struct NativeGridRepresentable: NSViewRepresentable {
 
     private func makeMenu(coord: Coordinator) -> NSMenu {
         let menu = NSMenu()
-        let mark = NSMenuItem(title: "Mark for Delete",
+        let mark = NSMenuItem(title: LS("data.markDelete"),
                               action: #selector(Coordinator.markDelete(_:)),
                               keyEquivalent: "")
         mark.target = coord
         menu.addItem(mark)
-        let unmark = NSMenuItem(title: "Unmark Delete",
+        let unmark = NSMenuItem(title: LS("data.unmarkDelete"),
                                 action: #selector(Coordinator.unmarkDelete(_:)),
                                 keyEquivalent: "")
         unmark.target = coord
         menu.addItem(unmark)
         menu.addItem(.separator())
-        let bulkEdit = NSMenuItem(title: "Set Selected Cells…",
+        let bulkEdit = NSMenuItem(title: LS("bulk.title", fallback: "Set Selected Cells…"),
                                   action: #selector(Coordinator.bulkEditClicked(_:)),
                                   keyEquivalent: "")
         bulkEdit.target = coord
         menu.addItem(bulkEdit)
         menu.addItem(.separator())
-        let copyInsert = NSMenuItem(title: "Copy as INSERT",
+        let copyInsert = NSMenuItem(title: LS("data.copyAsInsert"),
                                     action: #selector(Coordinator.copyAsInsert(_:)),
                                     keyEquivalent: "")
         copyInsert.target = coord

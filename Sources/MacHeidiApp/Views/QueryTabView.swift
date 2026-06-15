@@ -26,7 +26,7 @@ struct QueryTabView: View {
                     Button {
                         Task { await runAll() }
                     } label: {
-                        Label("Run All (⇧⌘R)", systemImage: "play.fill")
+                        Label(L("query.runAllLabel"), systemImage: "play.fill")
                     }
                     .keyboardShortcut("R", modifiers: [.command, .shift])
                     .disabled(running)
@@ -34,7 +34,7 @@ struct QueryTabView: View {
                     Button {
                         Task { await runCurrent() }
                     } label: {
-                        Label("Run (⌘⏎)", systemImage: "forward.fill")
+                        Label(L("query.runLabel"), systemImage: "forward.fill")
                     }
                     .keyboardShortcut(.return, modifiers: .command)
                     .disabled(running)
@@ -42,17 +42,16 @@ struct QueryTabView: View {
                     Button {
                         Task { await runExplain() }
                     } label: {
-                        Label("Explain", systemImage: "magnifyingglass.circle")
+                        Label(L("query.explain"), systemImage: "magnifyingglass.circle")
                     }
-                    .help("EXPLAIN current statement")
+                    .help(Text(L("query.runHelp")))
                     .disabled(running)
 
                     Button {
                         sql = SQLFormatter.format(sql)
                     } label: {
-                        Label("Format", systemImage: "text.alignleft")
+                        Label(L("query.format"), systemImage: "text.alignleft")
                     }
-                    .help("Format SQL (uppercase keywords + indent)")
                     .keyboardShortcut("F", modifiers: [.command, .shift])
                     .disabled(running)
 
@@ -61,7 +60,7 @@ struct QueryTabView: View {
                         Button {
                             cancel()
                         } label: {
-                            Label("Cancel", systemImage: "stop.fill")
+                            Label(L("query.cancel"), systemImage: "stop.fill")
                         }
                         .keyboardShortcut(".", modifiers: .command)
                     }
@@ -69,12 +68,12 @@ struct QueryTabView: View {
                     Button { openSQLFile() } label: {
                         Image(systemName: "folder")
                     }
-                    .help("Open .sql file (⌘O)")
+                    .help(Text(L("query.openHelp")))
                     .keyboardShortcut("o", modifiers: .command)
                     Button { saveSQLFile() } label: {
                         Image(systemName: "square.and.arrow.down")
                     }
-                    .help("Save SQL to file (⌘S)")
+                    .help(Text(L("query.saveHelp")))
                     .keyboardShortcut("s", modifiers: .command)
                     if let toast = cancelToast {
                         Label(toast, systemImage: "xmark.circle.fill")
@@ -278,7 +277,7 @@ private struct MultiResultPane: View {
 
     var body: some View {
         if outcomes.isEmpty {
-            Text("Run a query to see results here.")
+            Text(L("query.runQueryHere"))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
