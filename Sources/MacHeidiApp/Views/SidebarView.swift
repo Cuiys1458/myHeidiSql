@@ -272,7 +272,15 @@ private struct SessionRow: View {
 private struct DatabaseNode: View {
     @Environment(AppEnvironment.self) private var env
     let name: String
-    @State private var showCSVImportNew: Bool = false
+    @State private var csvImportSession: CSVImportSession?
+
+    /// 用 Identifiable token 配合 sheet(item:) —— 比 isPresented 更稳，
+    /// SwiftUI 只在 token 从 nil 变非 nil 那一帧弹 sheet，
+    /// 不会因为父视图重建/异步任务回来导致重复弹。
+    private struct CSVImportSession: Identifiable {
+        let id = UUID()
+        let database: String
+    }
 
     private var isSelected: Bool {
         if case .database(let n) = env.selectedNode, n == name { return true }
@@ -320,14 +328,19 @@ private struct DatabaseNode: View {
                 }
                 .contextMenu {
                     Button(L("menu.importCSVNewTable")) {
-                        showCSVImportNew = true
+                        csvImportSession = CSVImportSession(database: name)
                     }
                 }
         }
-        .sheet(isPresented: $showCSVImportNew) {
-            CSVImportNewTableView(database: name,
-                                   isPresented: $showCSVImportNew)
-                .frame(minWidth: 760, minHeight: 600)
+        // sheet(item:) 模式：item 为 nil 时不弹，从 nil 变非 nil 弹一次，
+        // 关闭时 SwiftUI 自动设回 nil。
+        // 关闭后即使父视图重建（expandDatabase 异步刷新触发）也不会重弹。
+        .sheet(item: $csvImportSession) { session in
+            CSVImportNewTableView(
+                database: session.database,
+                onDone: { csvImportSession = nil }
+            )
+            .frame(minWidth: 760, minHeight: 600)
         }
     }
 }

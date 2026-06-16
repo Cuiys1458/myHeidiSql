@@ -9,7 +9,7 @@ import MacHeidiCore
 /// 一键 CREATE TABLE + INSERT。
 struct CSVImportNewTableView: View {
     let database: String
-    @Binding var isPresented: Bool
+    let onDone: () -> Void
     @Environment(AppEnvironment.self) private var env
 
     @State private var fileURL: URL?
@@ -331,7 +331,7 @@ struct CSVImportNewTableView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Button(L("csvNew.cancel")) { isPresented = false }
+            Button(L("csvNew.cancel")) { onDone() }
                 .keyboardShortcut(.cancelAction)
                 .disabled(working)
             Button(L("csvNew.createAndImport")) {
@@ -474,6 +474,9 @@ struct CSVImportNewTableView: View {
             ), totalRows)
             // 刷新侧栏让新表立即出现
             await env.expandDatabase(database)
+            // 1.2 秒后自动关掉，让用户看到 ✅ 提示
+            try? await Task.sleep(for: .milliseconds(1200))
+            onDone()
         } catch {
             _ = try? await client.exec("ROLLBACK")
             errorMessage = String(format: NSLocalizedString(
